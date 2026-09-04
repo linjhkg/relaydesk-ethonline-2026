@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f5f0" />
+    <title>RelayDesk — 让现场顺畅交接</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.mjs"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#" aria-label="RelayDesk 首页"><span class="brand-symbol" aria-hidden="true"><i></i><i></i></span>RelayDesk<span class="brand-dot">.</span></a>
+        <div class="environment"><span class="status-dot"></span>本地模拟 <span class="muted-divider">·</span> 未上链</div>
+        <span class="header-note">EVENT OPERATIONS / 001</span>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <div class="eyebrow"><span class="tiny-line"></span> A SMALL DESK FOR BIG DAYS</div>
+            <h1 id="hero-title">名字不变。<br />现场，<span>顺畅交接。</span></h1>
+            <p class="hero-description">一个稳定的活动入口，一次有边界的交接。<br />负责人保留控制权，志愿者只更新报名链接。</p>
+          </div>
+          <aside class="journey" aria-label="演示步骤">
+            <div class="journey-heading">THE HANDOVER <span>↘</span></div>
+            <ol>
+              <li><span class="step-number">01</span><div><strong>留下一个名字</strong><span>活动入口始终不变</span></div></li>
+              <li><span class="step-number">02</span><div><strong>交出一项权限</strong><span>仅允许更新 URL 记录</span></div></li>
+              <li><span class="step-number">03</span><div><strong>随时收回控制</strong><span>撤销后，修改立即被拒绝</span></div></li>
+            </ol>
+          </aside>
+        </section>
+
+        <section class="workspace" aria-labelledby="workspace-title">
+          <div class="section-topline"><h2 id="workspace-title">活动交接台 <span>LIVE WORKSPACE</span></h2><span class="revision" id="revision">等待连接</span></div>
+          <div class="persona-bar">
+            <div class="persona-label"><span class="small-icon" aria-hidden="true">◎</span><div><strong>你正在以谁的身份操作？</strong><span>演示角色切换，不代表身份认证</span></div></div>
+            <div class="persona-options" role="group" aria-label="选择演示角色">
+              <button type="button" class="persona-button is-active" data-role="owner" aria-pressed="true">负责人 <span>Owner</span></button>
+              <button type="button" class="persona-button" data-role="volunteer" aria-pressed="false">志愿者 <span>Volunteer</span></button>
+              <button type="button" class="persona-button" data-role="outsider" aria-pressed="false">其他人 <span>Outsider</span></button>
+            </div>
+          </div>
+
+          <div class="desk-grid">
+            <section class="record-card card" aria-labelledby="record-title">
+              <div class="card-heading"><h3 id="record-title">活动身份 <span>EVENT IDENTITY</span></h3><span class="quiet-tag">示例名称</span></div>
+              <div class="identity-panel">
+                <div class="identity-kicker"><span class="identity-mark" aria-hidden="true">↗</span> ONE NAME. EVERY HANDOVER.</div>
+                <p class="event-name" id="event-name">—</p>
+                <div class="identity-footer"><span>ENS 活动子域名</span><span class="identity-lock"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2M3 7h10v7H3z"/></svg>稳定入口</span></div>
+              </div>
+              <p class="fiction-note">此名称仅为虚构演示数据，未注册、未验证归属，也未解析到链上。</p>
+              <form id="url-form" class="url-form">
+                <label for="url-input">报名链接 <span class="record-key">TEXT RECORD / url</span></label>
+                <div class="input-wrap"><span aria-hidden="true">↗</span><input id="url-input" name="url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.org/register" required aria-describedby="url-help" /></div>
+                <div class="form-bottom"><p id="url-help">仅接受不含账号密码的 HTTPS 地址。<br />不代表已验证链接内容安全。</p><button type="submit" class="button button-primary" data-command-button>保存链接 <span aria-hidden="true">↗</span></button></div>
+              </form>
+            </section>
+
+            <aside class="permissions-card card" aria-labelledby="permissions-title">
+              <div class="card-heading"><h3 id="permissions-title">交接权限 <span>DELEGATION</span></h3><span id="grant-badge" class="pill">待加载</span></div>
+              <div class="delegate-person"><div class="avatar" aria-hidden="true">V<span></span></div><div><strong>活动志愿者</strong><span>volunteer · 演示角色</span></div></div>
+              <div class="permission-list">
+                <div><span>授权范围</span><strong class="code-value">url</strong></div>
+                <div><span>更新报名链接</span><strong id="url-permission">—</strong></div>
+                <div><span>转移名称 / 管理其他记录</span><strong class="permission-no">不在授权范围</strong></div>
+              </div>
+              <div class="permission-actions"><button class="button button-primary" id="grant-button" type="button" data-command-button>授予权限 <span aria-hidden="true">+</span></button><button class="button button-outline" id="revoke-button" type="button" data-command-button>撤销权限</button></div>
+              <p class="role-explanation" id="role-explanation">负责人可授权、撤销和更新链接。切换角色可验证权限边界。</p>
+              <div class="boundary-tests"><span class="eyebrow">TRY THE BOUNDARIES</span><div><button id="outsider-attempt" type="button" data-command-button>试试未授权修改 <span aria-hidden="true">↗</span></button><button id="unsafe-attempt" type="button" data-command-button>试试不安全链接 <span aria-hidden="true">↗</span></button></div></div>
+            </aside>
+          </div>
+
+          <div id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true"><span class="feedback-icon" aria-hidden="true">i</span><span id="feedback-text">正在载入本地演示状态…</span></div>
+
+          <div class="bottom-grid">
+            <section class="audit-card card" aria-labelledby="audit-title">
+              <div class="card-heading"><h3 id="audit-title">交接留痕 <span>ACTIVITY LOG</span></h3><span class="audit-count" id="audit-count">0 条记录</span></div>
+              <ol class="audit-list" id="audit-list"><li class="empty-state">正在读取操作记录…</li></ol>
+              <p class="audit-footnote">记录仅保存在本地模拟状态中，不是链上交易。</p>
+            </section>
+            <section class="attendee-card card" aria-labelledby="attendee-title">
+              <div class="card-heading"><h3 id="attendee-title">参会者看到的 <span>ATTENDEE VIEW</span></h3><span aria-hidden="true">↗</span></div>
+              <div class="attendee-preview"><div class="ticket-icon" aria-hidden="true">↗</div><span class="preview-caption">活动报名入口</span><strong id="preview-name">—</strong><a id="attendee-link" class="button button-dark" target="_blank" rel="noopener noreferrer" aria-disabled="true">打开报名页面 <span aria-hidden="true">↗</span></a><span class="preview-url" id="preview-url">等待加载链接</span></div>
+              <p class="attendee-note">撤销只停止编辑，不会删除现有链接；旧链接仍可访问，需由组织者另行更新。<br />预览直接打开当前 URL，并未调用 ENS 解析。</p>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer"><div><span class="footer-brand">RelayDesk.</span><span>让名字稳定，让协作流动。</span></div><button id="reset-button" type="button" data-command-button><span aria-hidden="true">↺</span> 重置本地演示</button><p>LOCAL PROTOTYPE <span>·</span> NO WALLET CONNECTED</p></footer>
+    </div>
+  </body>
+</html>
