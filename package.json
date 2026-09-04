@@ -4,11 +4,16 @@
   "private": true,
   "type": "module",
   "description": "ETHOnline 2026 — event link handover prototype",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test",
     "preflight": "node scripts/sepolia-preflight.mjs",
-    "check": "node --check server.mjs && node --check src/domain.mjs && node --check public/app.mjs"
+    "check": "node --check server.mjs && node --check src/domain.mjs && node --check src/ens-chain.mjs && node --check src/ens-receipt.mjs && node --check public/app.mjs && node --check public/sepolia.mjs"
+  },
+  "dependencies": {
+    "viem": "2.56.3"
   }
 }

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f5f0" />
+    <title>RelayDesk — Sepolia 实操</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/sepolia.css" />
+    <script type="module" src="/sepolia.mjs"></script>
+  </head>
+  <body class="sepolia-page">
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="RelayDesk 本地演示"><span class="brand-symbol" aria-hidden="true"><i></i><i></i></span>RelayDesk<span class="brand-dot">.</span></a>
+        <div class="environment"><span class="status-dot"></span>Sepolia 实操 <span class="muted-divider">·</span> 真实测试网</div>
+        <a class="demo-link" href="/">返回本地模拟 ↗</a>
+      </header>
+      <main>
+        <section class="testnet-hero" aria-labelledby="page-title">
+          <div><div class="eyebrow"><span class="tiny-line"></span> THE HANDOVER, ON CHAIN</div><h1 id="page-title">把交接，<span>写进链上。</span></h1><p>使用你实际控制的 ENS 名称和钱包，在 Sepolia 验证授权、更新与撤销。</p></div>
+          <div class="testnet-note"><strong>仅限 Sepolia · 11155111</strong><span>这里的签名会发送真实测试网交易。<br />交易不转移 ETH，但需要 Sepolia ETH 支付网络费。</span></div>
+        </section>
+
+        <div id="status" class="feedback" role="status" aria-live="polite" aria-atomic="true">先读取 ENS 名称。连接钱包和提交交易都需要你主动操作。</div>
+
+        <div class="testnet-grid">
+          <section class="card" aria-labelledby="inspect-title">
+            <div class="card-heading"><h2 id="inspect-title"><span class="step">01</span>读取活动身份</h2><span class="quiet-tag">只读</span></div>
+            <form id="inspect-form">
+              <label for="ens-name">Sepolia 上的 ENS 名称</label>
+              <div class="field-row"><input id="ens-name" name="name" type="text" placeholder="输入你实际控制的 ENS 名称" autocomplete="off" spellcheck="false" required maxlength="255" /><button id="inspect-button" class="button button-primary" type="submit">读取名称 ↗</button></div>
+            </form>
+            <div id="record-empty" class="empty-record">尚未读取链上记录</div>
+            <dl id="record-details" class="details" hidden>
+              <div><dt>名称</dt><dd id="record-name"></dd></div>
+              <div><dt>Resolver</dt><dd id="record-resolver" class="mono"></dd></div>
+              <div><dt>当前 url</dt><dd id="record-url"></dd></div>
+              <div><dt>合约代码</dt><dd id="record-code"></dd></div>
+            </dl>
+            <p class="help">先确认名称在 Sepolia 存在，并使用支持 URL 单项授权的 Resolver。主网的名称与状态不会自动出现在测试网上。</p>
+          </section>
+
+          <section class="card" aria-labelledby="wallet-title">
+            <div class="card-heading"><h2 id="wallet-title"><span class="step">02</span>连接实际操作账户</h2><span id="wallet-badge" class="pill">未连接</span></div>
+            <label for="wallet-select">选择浏览器钱包</label>
+            <div class="field-row"><select id="wallet-select"><option value="">请选择钱包</option></select><button id="connect-button" type="button" class="button button-primary" disabled>连接钱包</button></div>
+            <p id="wallet-help" class="help"></p>
+            <dl class="details wallet-details">
+              <div><dt>实际账户</dt><dd id="wallet-account" class="mono">未连接</dd></div>
+              <div><dt>当前网络</dt><dd id="wallet-chain">未读取</dd></div>
+            </dl>
+            <button id="switch-button" type="button" class="button button-outline" hidden>在钱包中切换到 Sepolia</button>
+            <p class="help">权限以链上的实际账户为准。需要更换操作人时，请在钱包内切换账户，再重新模拟。</p>
+          </section>
+        </div>
+
+        <section class="card actions-card" aria-labelledby="actions-title">
+          <div class="card-heading"><h2 id="actions-title"><span class="step">03</span>选择操作并模拟</h2><span class="quiet-tag">此步骤不签名</span></div>
+          <div class="testnet-grid action-grid">
+            <div><label for="volunteer">志愿者钱包地址</label><input id="volunteer" type="text" placeholder="输入完整的 0x 地址" spellcheck="false" autocomplete="off" maxlength="42" /><p class="help">授予或撤销此地址对当前名称的 <code>url</code> 记录编辑权限。<br /><strong>撤销不会删除旧链接；需要更换入口时，请另行更新 url。</strong></p><div class="button-row"><button id="grant-button" class="button button-primary" type="button" data-action="grant" disabled>模拟授予权限</button><button id="revoke-button" class="button button-outline" type="button" data-action="revoke" disabled>模拟撤销权限</button></div></div>
+            <div><label for="new-url">新的报名链接</label><input id="new-url" type="url" inputmode="url" placeholder="输入完整的 HTTPS 报名地址" autocomplete="off" spellcheck="false" maxlength="2048" /><p class="help">仅接受不含账号密码的 HTTPS 地址。请自行确认链接内容和接收方。</p><button id="update-button" class="button button-primary" type="button" data-action="update" disabled>模拟更新链接</button></div>
+          </div>
+        </section>
+
+        <section id="review" class="card review-card" aria-labelledby="review-title" hidden>
+          <div class="card-heading"><h2 id="review-title"><span class="step">04</span>核对后，在钱包中确认</h2><span class="pill">模拟通过 · 尚未发送</span></div>
+          <dl id="review-details" class="details review-details"></dl>
+          <details><summary>查看交易 calldata</summary><pre id="review-data" class="mono"></pre></details>
+          <p class="review-warning">请核对名称、账户、合约和操作内容。点击后会再次模拟并核验参数，然后请求钱包签名。钱包中的网络、目标合约和金额应与这里一致。模拟成功不保证交易最终成功。</p>
+          <p class="help">本版检查 Resolver 内的记录角色，尚未自动核验名字所有权、注册表管理权限或任意自定义 Resolver 的真实性。请只使用本人新建的专用测试名与独立志愿者账户；不要把单项撤销理解为移除所有管理权限。</p>
+          <div class="button-row"><button id="send-button" class="button button-primary" type="button" disabled>在钱包中确认 ↗</button><button id="discard-button" class="button button-outline" type="button">取消本次准备</button></div>
+        </section>
+
+        <section id="receipt" class="card receipt-card" aria-labelledby="receipt-title" hidden>
+          <div class="card-heading"><h2 id="receipt-title">交易回执</h2><span id="receipt-state" class="pill">等待链上确认</span></div>
+          <p id="receipt-message" aria-live="polite"></p><a id="receipt-link" class="transaction-link mono" target="_blank" rel="noopener noreferrer"></a>
+          <div class="button-row"><button id="receipt-button" class="button button-outline" type="button">检查链上回执</button></div>
+          <p class="help">交易哈希只表示已提交。回执成功后，可重新读取名称核对最新记录。刷新页面会清空待确认交易；请保存交易哈希以便在浏览器中查询。</p>
+        </section>
+      </main>
+      <footer class="site-footer"><div><span class="footer-brand">RelayDesk.</span><span>让名字稳定，让协作流动。</span></div><a href="/">本地模拟 ↗</a><p>SEPOLIA TESTNET <span>·</span> WALLET SIGNATURE REQUIRED</p></footer>
+    </div>
+  </body>
+</html>

@@ -3,11 +3,17 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { createDemoState, applyCommand } from './src/domain.mjs';
+import { createEnsService } from './src/ens-chain.mjs';
+import { getReceipt } from './src/ens-receipt.mjs';
 
 const assets = new Map([
   ['/', ['public/index.html', 'text/html; charset=utf-8']],
   ['/styles.css', ['public/styles.css', 'text/css; charset=utf-8']],
   ['/app.mjs', ['public/app.mjs', 'text/javascript; charset=utf-8']],
+  ['/sepolia', ['public/sepolia.html', 'text/html; charset=utf-8']],
+  ['/sepolia.html', ['public/sepolia.html', 'text/html; charset=utf-8']],
+  ['/sepolia.css', ['public/sepolia.css', 'text/css; charset=utf-8']],
+  ['/sepolia.mjs', ['public/sepolia.mjs', 'text/javascript; charset=utf-8']],
 ]);
 
 function json(res, status, value) {
@@ -32,8 +38,9 @@ async function readJson(req) {
 }
 
 // Deliberately a localhost-only shared demo, not production authentication.
-export function createDemoServer() {
+export function createDemoServer({ ensService = createEnsService(), receiptService = getReceipt } = {}) {
   let state = createDemoState();
+  let ensInFlight = 0;
   return http.createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -44,7 +51,7 @@ export function createDemoServer() {
     if (!hosts.includes(req.headers.host)) return json(res, 403, { error: 'Localhost access only.' });
     const path = req.url;
     if (req.method === 'GET' && path === '/api/state') return json(res, 200, state);
-    if (req.method === 'POST' && ['/api/command', '/api/reset'].includes(path)) {
+    if (req.method === 'POST' && ['/api/command', '/api/reset', '/api/ens/inspect', '/api/ens/prepare', '/api/ens/receipt'].includes(path)) {
       const allowedOrigins = hosts.map(host => `http://${host}`);
       if ((req.headers.origin && !allowedOrigins.includes(req.headers.origin)) || req.headers['sec-fetch-site'] === 'cross-site') {
         return json(res, 403, { error: 'Cross-site requests are not allowed.' });
@@ -54,10 +61,21 @@ export function createDemoServer() {
       }
       try {
         const command = await readJson(req);
+        if (path.startsWith('/api/ens/')) {
+          if (!command || typeof command !== 'object' || Array.isArray(command)) return json(res, 400, { error: 'Provide a JSON object.', code: 'INVALID_INPUT' });
+          if (ensInFlight >= 4) return json(res, 429, { error: 'Too many chain requests; retry shortly.', code: 'BUSY' });
+          ensInFlight += 1;
+          try {
+            const result = path === '/api/ens/inspect' ? await ensService.inspect(command)
+              : path === '/api/ens/prepare' ? await ensService.prepare(command)
+                : await receiptService(command);
+            return json(res, 200, result);
+          } finally { ensInFlight -= 1; }
+        }
         state = path === '/api/reset' ? createDemoState() : applyCommand(state, command);
         return json(res, 200, state);
       } catch (error) {
-        return json(res, error.status || 400, { error: error.message });
+        return json(res, error.status || 400, { error: (error.shortMessage || error.message || 'Request failed.').slice(0,700), ...(error.code ? { code: String(error.code) } : {}) });
       }
     }
     if ((req.method === 'GET' || req.method === 'HEAD') && assets.has(path)) {
@@ -77,7 +95,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid RELAYDESK_PORT.');
   const server = createDemoServer();
   server.listen(port, '127.0.0.1', () => {
-    console.log(`RelayDesk local simulation: http://127.0.0.1:${port}`);
+    console.log(`RelayDesk demo: http://127.0.0.1:${port} | Sepolia: http://127.0.0.1:${port}/sepolia`);
   });
   server.on('error', error => { console.error(error.message); process.exitCode = 1; });
 }

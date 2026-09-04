@@ -19,7 +19,9 @@ text(bytes32 node, string key) external view returns (string)
 
 来源：[官方 Permissioned Resolver](https://docs.ens.domains/ensv2/permissioned-resolver/)、[EAC](https://docs.ens.domains/ensv2/enhanced-access-control/)、[固定版本 ABI](https://github.com/ensdomains/contracts-v2/blob/97a57293f3b4279d94b571e678edb53ce62638f4/contracts/deployments/sepolia/PermissionedResolverImpl.json)。
 
-## 客户端和依赖决策（尚未安装）
+## 客户端和依赖决策
+
+更新：用户于 2026-09-05 允许比赛所需操作，已固定安装 viem@2.56.3；完整官方 ABI 已导入 src/abi/。以下版本选择研究作为历史依据。真实模式已实现只读查询与调用预演，但自有名字的完整交易流程尚未完成。
 
 官方 ENSv2 读取支持：viem >= 2.35.0，ENSjs >= 4.2.3。研究时 npm viem latest 为 2.56.3，ENSjs stable 为 4.3.1；版本需在安装当天复查。建议仅 viem 配合官方 ABI，不引入还在预览的 ENSjs v5 写接口。不自行实现 Keccak/namehash/交易密码学。
 
