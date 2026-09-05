@@ -59,7 +59,8 @@ This is a competition prototype on testnet. It is not a production security cert
 
 ## Final fields to insert
 
-- Public demo URL: obtain from a successful deployment and anonymous-access check.
+- Public demo URL: https://relaydesk-ethonline-2026.xianche0614076.chatgpt.site (deployed and checked anonymously on September 5, 2026).
+- On-chain evidence: https://relaydesk-ethonline-2026.xianche0614076.chatgpt.site/evidence
 - Public source repository: preserve development history; review source licensing and private-data exclusions.
 - Demo video: human narration, 2–4 minutes, at least 720p; upload and verify playback.
 - Select ENS as a partner prize. Do not claim integrations with unused sponsors.

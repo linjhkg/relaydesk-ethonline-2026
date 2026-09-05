@@ -1,0 +1,84 @@
+1
+00:00:00,000 --> 00:00:10,000
+This is RelayDesk, an event-link handover tool.
+Volunteers may change, but the event's identity should stay stable.
+
+2
+00:00:10,000 --> 00:00:20,000
+Delegate one editing permission—not a wallet,
+domain ownership, or control over every record.
+
+3
+00:00:20,000 --> 00:00:32,000
+There are three entry points: a wallet-free simulation,
+real Sepolia operations, and test-name registration.
+
+4
+00:00:32,000 --> 00:00:45,000
+Simulation changes only this browser's sample state.
+The evidence page separately shows verified on-chain transactions.
+
+5
+00:00:45,000 --> 00:00:57,000
+At the core is ENSv2's Permissioned Resolver.
+An organizer can delegate the url record for a specific name.
+
+6
+00:00:57,000 --> 00:01:07,000
+We use the actual permission system, not a mock contract.
+An ordinary wallet directly owns the registered name.
+
+7
+00:01:07,000 --> 00:01:15,000
+Registration uses free test stablecoins,
+with an allowance limited to the required amount.
+
+8
+00:01:15,000 --> 00:01:27,000
+First, the organizer grants the volunteer url-editing permission.
+The volunteer can then publish a new event link.
+
+9
+00:01:27,000 --> 00:01:39,000
+The name remains unchanged.
+Next, the organizer revokes the volunteer's permission.
+
+10
+00:01:39,000 --> 00:01:50,000
+The same volunteer's next update is denied.
+Revocation preserves the last successfully published link.
+
+11
+00:01:50,000 --> 00:02:02,000
+This is more than a simulation.
+We registered relaydesk2026.eth on Sepolia.
+
+12
+00:02:02,000 --> 00:02:14,000
+Two different OKX accounts completed the real grant,
+edit, and revocation. The explorer links show those transactions.
+
+13
+00:02:14,000 --> 00:02:25,000
+After revocation, all four permission scopes are zero.
+Further writes are denied, while the event link remains intact.
+
+14
+00:02:25,000 --> 00:02:37,000
+Before signing, the app rechecks the account, network,
+target contract, and transaction contents.
+
+15
+00:02:37,000 --> 00:02:50,000
+Receipts and on-chain effects are verified; uncertain sends stay locked.
+The app never reads private keys or approves wallet prompts automatically.
+
+16
+00:02:50,000 --> 00:03:02,000
+Codex generated and verified the code and automated tests.
+Claude cross-reviewed technical sources and assumptions.
+
+17
+00:03:02,000 --> 00:03:15,000
+I directed the goals and key choices, prepared accounts,
+and participated in operation and verification. Next: real organizer feedback.
