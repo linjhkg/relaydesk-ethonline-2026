@@ -97,6 +97,7 @@ function render(state) {
 }
 
 async function request(path, body) {
+  if (globalThis.RelayDeskRuntime) return globalThis.RelayDeskRuntime.request('demo', path, body);
   const response = await fetch(path, {
     method: body === undefined ? 'GET' : 'POST',
     headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },

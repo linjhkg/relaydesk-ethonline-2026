@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="RelayDesk: verified, record-scoped ENSv2 delegation on Ethereum Sepolia." />
+  <title>RelayDesk — Onchain evidence</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/sepolia.css" />
+  <link rel="stylesheet" href="/readability.css" />
+  <script type="module" src="/evidence.mjs"></script>
+</head>
+<body class="sepolia-page evidence-page">
+<div class="page-shell">
+  <header class="site-header">
+    <a class="brand" href="/">RelayDesk<span class="brand-dot">.</span></a>
+    <div class="environment">Verified on Sepolia · 11155111</div>
+    <a class="chain-link" href="/sepolia">Open live workspace ↗</a>
+  </header>
+  <main>
+    <section class="evidence-intro">
+      <h1>One name. One record.<br /><span>Permission you can revoke.</span></h1>
+      <p>RelayDesk lets an organizer delegate only an event's <code>url</code> record. The volunteer never receives the organizer's private key or ownership of the name.</p>
+      <div class="button-row"><a class="button button-primary" href="/">Try the isolated simulation</a><a class="button button-outline" href="/register">Register your own test name</a></div>
+    </section>
+    <section class="card" aria-labelledby="live-heading">
+      <div class="card-heading"><h2 id="live-heading">Read the real record</h2><span class="quiet-tag">Read only · no wallet required</span></div>
+      <p>This name was registered and tested during ETHOnline 2026. Refresh reads Sepolia now; it does not replay a saved success response.</p>
+      <dl class="details"><div><dt>Name</dt><dd>relaydesk2026.eth</dd></div><div><dt>Resolver</dt><dd id="live-resolver">Not read yet</dd></div><div><dt>Current url</dt><dd id="live-url">Not read yet</dd></div></dl>
+      <button id="refresh-live" class="button button-primary" type="button">Read Sepolia now</button>
+      <p id="live-status" role="status" aria-live="polite">No request has been made yet.</p>
+    </section>
+    <section class="card evidence-history" aria-labelledby="proof-heading">
+      <div class="card-heading"><h2 id="proof-heading">The tested handover</h2><span class="quiet-tag">Historical evidence · September 5, 2026</span></div>
+      <ol class="proof-steps">
+        <li><strong>Before delegation</strong><span>The independent volunteer could not edit either <code>url</code> or <code>description</code>.</span></li>
+        <li><strong>Grant one record</strong><span>The organizer granted only the <code>url</code> record's TEXT role. Other record edits still reverted.</span><a href="https://sepolia.etherscan.io/tx/0xec69c1d670d8306b25abf372c40afed96648dd232bdc0ca1e5d21b9fd79579b0" target="_blank" rel="noopener noreferrer">Grant transaction ↗</a></li>
+        <li><strong>Edit from a different account</strong><span>The volunteer wrote the event link and the same ENS name resolved to the new value.</span><a href="https://sepolia.etherscan.io/tx/0xfbecb8180af8c0fe6360674729ad0909bcff77e532af69602bcfbf1922c140a0" target="_blank" rel="noopener noreferrer">Volunteer edit transaction ↗</a></li>
+        <li><strong>Revoke and test denial</strong><span>All four volunteer role scopes returned to zero. Further edits reverted with <code>EACUnauthorizedAccountRoles</code>; the last published URL remained intact.</span><a href="https://sepolia.etherscan.io/tx/0xadff9bd29d3abd282280216bff5b96c542d08e0b3584263eddfe99228697e760" target="_blank" rel="noopener noreferrer">Revoke transaction ↗</a></li>
+      </ol>
+      <p><a href="/evidence/handover-final.json" target="_blank" rel="noopener noreferrer">Final read-only check JSON ↗</a> · <a href="/evidence/handover-transactions.json" target="_blank" rel="noopener noreferrer">Transaction evidence JSON ↗</a></p>
+      <p class="help">This is dated evidence, not a claim that live state can never change. The reproducible checker validates the current state separately.</p>
+    </section>
+    <section class="card evidence-history">
+      <h2>Built for ETHOnline 2026</h2>
+      <p>New application code, testing, and deployment work began after kickoff. ENSv2's Permissioned Resolver and <code>authorizeTextRoles</code> are central to the product; RelayDesk does not replace them with a custom permission contract.</p>
+      <p>Codex generated the application code and automated tests; Claude reviewed technical material and implementation assumptions. The human participant directed the project, prepared accounts, and reviewed the workflow. AI assistance is disclosed in the submission materials.</p>
+      <p class="help">Competition prototype. Sepolia test assets only. No private-key import, mainnet transactions, or automatic signing. No customers, revenue, prize awards, or final submission are implied.</p>
+    </section>
+  </main>
+  <footer class="site-footer"><span class="footer-brand">RelayDesk.</span><a href="/">Simulation</a><a href="/sepolia">Live workspace</a><a href="/register">Test-name registration</a></footer>
+</div>
+</body>
+</html>

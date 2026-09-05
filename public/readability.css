@@ -1,0 +1,10 @@
+/* Preserve the established identity while making the public demo readable. */
+.hero{padding:32px 0}.hero h1{font-size:42px;margin:14px 0}.hero-description,p{font-size:16px;line-height:1.65}
+.button,button,input,select,textarea,label,.persona-button,.persona-label strong,.url-form label{font-size:14px}
+.help,.fiction-note,.role-explanation,.audit-detail,.audit-footnote,.attendee-note,.form-bottom p,.feedback,.preview-url{font-size:13px;line-height:1.7}
+.quiet-tag,.pill,.revision,.record-key,.eyebrow,.step-number,.audit-sequence,.site-footer,.site-footer p,.journey li div>span,h2 span,h3 span,.persona-label div>span{font-size:12px}
+.permission-list>div,.permission-list strong,.boundary-tests button,.audit-title,.journey li strong{font-size:14px}
+.site-header{height:auto;min-height:90px;flex-wrap:wrap;padding:18px 0}.site-footer{flex-wrap:wrap}
+.evidence-intro{padding:36px 0}.evidence-intro h1{font-size:42px;margin:12px 0}.evidence-intro p{max-width:760px}.evidence-history{margin-top:22px}.evidence-history h2{margin-bottom:14px}
+.proof-steps{display:grid;gap:22px;margin:20px 0}.proof-steps li{display:grid;gap:8px;border-left:3px solid var(--indigo);padding:0 0 0 18px}.proof-steps a,.evidence-history a{color:var(--indigo);text-decoration:underline}.details dd{overflow-wrap:anywhere}#live-status{margin-bottom:0}
+@media(max-width:760px){.hero h1,.evidence-intro h1{font-size:34px}.page-shell{padding:0 18px}.site-header{gap:14px}.persona-button span{display:none}.journey ol{grid-template-columns:1fr}.card{padding:18px}.button-row{flex-wrap:wrap}.section-topline{flex-wrap:wrap;gap:8px}}

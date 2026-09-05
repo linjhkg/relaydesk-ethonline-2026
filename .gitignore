@@ -3,5 +3,10 @@
 .env.*
 !.env.example
 node_modules/
+dist/
+recordings/
+submission/*.mp4
+submission/*.mov
+*.tar.gz
 coverage/
 *.log

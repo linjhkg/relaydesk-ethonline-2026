@@ -124,6 +124,7 @@ function loadPlan() {
   showPending(); render();
 }
 async function api(path, body) {
+  if (globalThis.RelayDeskRuntime) return globalThis.RelayDeskRuntime.request('registration', path, body);
   const response = await fetch(`/api/registration/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', redirect: 'error', body: JSON.stringify(body), signal: AbortSignal.timeout(45000) });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || `请求失败（${response.status}）`);

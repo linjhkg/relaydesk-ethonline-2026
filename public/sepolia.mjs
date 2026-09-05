@@ -60,6 +60,7 @@ function assertCurrent(revision) {
 }
 
 async function api(path, body) {
+  if (globalThis.RelayDeskRuntime) return globalThis.RelayDeskRuntime.request('ens', path, body);
   const response = await fetch(`/api/ens/${path}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     credentials: 'same-origin', redirect: 'error', body: JSON.stringify(body),

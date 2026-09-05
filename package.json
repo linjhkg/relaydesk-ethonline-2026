@@ -8,6 +8,8 @@
     "node": ">=24"
   },
   "scripts": {
+    "build": "node scripts/build-public.mjs",
+    "verify:public": "node verification/public-build.mjs",
     "start": "node server.mjs",
     "test": "node --test",
     "preflight": "node scripts/sepolia-preflight.mjs",
@@ -15,5 +17,8 @@
   },
   "dependencies": {
     "viem": "2.56.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   }
 }
