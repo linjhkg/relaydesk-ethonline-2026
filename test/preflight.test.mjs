@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runPreflight } from '../scripts/sepolia-preflight.mjs';
+import { ENS_DEPLOYMENTS } from '../src/sepolia-config.mjs';
 
 function fakeRpc(overrides = {}) {
   const methods = [];
@@ -19,9 +20,9 @@ function fakeRpc(overrides = {}) {
 test('preflight permits only read methods and checks all deployment bytecodes', async () => {
   const mock = fakeRpc();
   const result = await runPreflight(mock);
-  assert.equal(result.contracts.length, 3);
+  assert.equal(result.contracts.length, Object.keys(ENS_DEPLOYMENTS).length);
   assert.equal(result.contracts[0].codeBytes, 4);
-  assert.deepEqual(mock.methods, ['eth_chainId', 'eth_blockNumber', 'eth_getCode', 'eth_getCode', 'eth_getCode']);
+  assert.deepEqual(mock.methods, ['eth_chainId', 'eth_blockNumber', ...Object.keys(ENS_DEPLOYMENTS).map(()=>'eth_getCode')]);
   assert.match(result.evidence, /existence only/);
 });
 

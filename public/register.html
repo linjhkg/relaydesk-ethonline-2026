@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f5f0" />
+    <title>RelayDesk — 注册 Sepolia 测试名</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/sepolia.css" />
+    <link rel="stylesheet" href="/register.css" />
+    <script type="module" src="/register.mjs"></script>
+  </head>
+  <body class="sepolia-page registration-page">
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="RelayDesk 首页"><span class="brand-symbol" aria-hidden="true"><i></i><i></i></span>RelayDesk<span class="brand-dot">.</span></a>
+        <div class="environment"><span class="status-dot"></span>Sepolia 测试名 <span class="muted-divider">·</span> 11155111</div>
+        <a class="demo-link" href="/sepolia">进入链上实操 ↗</a>
+      </header>
+      <main>
+        <section class="testnet-hero" aria-labelledby="page-title">
+          <div><div class="eyebrow"><span class="tiny-line"></span> A NAME TO START WITH</div><h1 id="page-title">从一个名字，<span>开始交接。</span></h1><p>由你的实际钱包注册测试名，并部署专属 Resolver。<br />每一步都先模拟、再核对，由你在钱包中确认。</p></div>
+          <div class="testnet-note"><strong>仅测试网 · 不操作以太坊主网</strong><span>MockUSDC 是免费测试资产，没有真实货币价值。<br />交易转账金额为 0 ETH，网络费需要 Sepolia ETH。<br />测试名与主网 ENS 名称和所有权相互独立。</span></div>
+        </section>
+        <div id="status" class="feedback" role="status" aria-live="polite" aria-atomic="true">先选择并连接钱包，再创建或恢复注册计划。默认名称只是候选，尚未注册。</div>
+        <div class="testnet-grid registration-top">
+          <section class="card" aria-labelledby="wallet-title">
+            <div class="card-heading"><h2 id="wallet-title"><span class="step">01</span>连接你的钱包</h2><span id="wallet-badge" class="pill">未连接</span></div>
+            <label for="wallet-select">浏览器钱包</label><div class="field-row"><select id="wallet-select"><option value="">请选择钱包</option></select><button id="connect-button" type="button" class="button button-primary" disabled>连接钱包</button></div>
+            <p id="wallet-help" class="help"></p>
+            <dl class="details"><div><dt>实际账户</dt><dd id="wallet-account" class="mono">未连接</dd></div><div><dt>当前网络</dt><dd id="wallet-chain">未读取</dd></div></dl>
+            <button id="switch-button" class="button button-outline" type="button" hidden>在钱包中切换到 Sepolia</button>
+          </section>
+          <section class="card" aria-labelledby="plan-title">
+            <div class="card-heading"><h2 id="plan-title"><span class="step">02</span>准备注册计划</h2><span id="plan-badge" class="pill">候选名称</span></div>
+            <label for="ens-name">想注册的 Sepolia 名称</label><input id="ens-name" type="text" value="relaydesk2026.eth" maxlength="255" spellcheck="false" autocomplete="off" />
+            <div class="button-row plan-actions"><button id="create-plan-button" class="button button-primary" type="button" disabled>创建 / 载入计划</button><button id="inspect-button" class="button button-outline" type="button" disabled>读取最新链上状态</button></div>
+            <p class="help">计划按钱包与名称保存在当前浏览器。刷新会恢复同一份预约随机数；请在 commit 前保存备份，清除浏览器数据会丢失它。</p>
+            <details><summary>备份或恢复注册计划</summary><p class="help">secret 与 salt 是预约和部署使用的随机数，<strong>不是钱包私钥</strong>。本站永不要求助记词或私钥。请将备份保存在你控制的位置，勿公开预约随机数。</p><label class="backup-label" for="plan-backup">当前计划备份</label><textarea id="plan-backup" rows="5" readonly placeholder="创建计划后显示备份 JSON"></textarea><label class="backup-label" for="plan-restore">粘贴此前保存的计划 JSON</label><textarea id="plan-restore" rows="4" placeholder="仅粘贴此页面生成的计划" spellcheck="false"></textarea><button id="restore-button" class="button button-outline" type="button" disabled>校验并恢复计划</button></details>
+          </section>
+        </div>
+        <section class="card chain-card" aria-labelledby="chain-title">
+          <div class="card-heading"><h2 id="chain-title">你的注册进度</h2><span id="chain-badge" class="quiet-tag">等待读取测试网</span></div>
+          <div class="chain-stats"><div><span>候选名称</span><strong id="chain-name">尚未读取</strong></div><div><span>当前注册价 · MockUSDC</span><strong id="chain-price">—</strong></div><div><span>钱包余额 · MockUSDC</span><strong id="chain-balance">—</strong></div><div><span>名称状态</span><strong id="chain-availability">尚未读取</strong></div></div>
+          <dl class="details"><div><dt>专属 Resolver</dt><dd id="chain-resolver" class="mono">尚未部署</dd></div><div><dt>预约等待</dt><dd id="commitment-wait">读取链上状态后显示</dd></div></dl>
+          <p class="help">价格与余额仅涉及 Sepolia 测试资产。每次发送前会重新读取价格、核验合约并模拟；链上状态可能变化。</p>
+        </section>
+        <section class="card registration-actions" aria-labelledby="steps-title">
+          <div class="card-heading"><h2 id="steps-title"><span class="step">03</span>逐步模拟并确认</h2><span class="quiet-tag">每笔交易单独确认</span></div>
+          <ol class="registration-steps">
+            <li><span class="registration-step-number">01</span><div><h3>领取免费测试资产</h3><p>铸造 25 MockUSDC，供本次测试名注册使用。</p></div><button id="mint-button" data-action="mint" class="button button-outline" type="button" disabled>模拟铸造</button></li>
+            <li><span class="registration-step-number">02</span><div><h3>部署专属 Resolver</h3><p>由当前钱包创建。回执成功后核验部署地址与角色。</p></div><button id="deploy-button" data-action="deploy" class="button button-outline" type="button" disabled>模拟部署</button></li>
+            <li><span class="registration-step-number">03</span><div><h3>预约名字 · Commit</h3><p>提交预约承诺，开始链上规定的最短等待时间。</p></div><button id="commit-button" data-action="commit" class="button button-outline" type="button" disabled>模拟预约</button></li>
+            <li><span class="registration-step-number">04</span><div><h3>按本次价格授权</h3><p>仅按当前注册价授权给固定的官方测试网注册合约。</p></div><button id="approve-button" data-action="approve" class="button button-outline" type="button" disabled>模拟授权</button></li>
+            <li><span class="registration-step-number">05</span><div><h3>等待后，完成注册</h3><p>再次检查链上等待时间、名字可用性和当前价格。</p></div><button id="register-button" data-action="register" class="button button-primary" type="button" disabled>模拟注册</button></li>
+          </ol>
+          <p class="help">这是当前钱包直接发送的交易。每个按钮只准备一个操作，不会自动连续发送，也不会创建委托会话或签署 permit。</p>
+        </section>
+        <section id="review" class="card review-card" aria-labelledby="review-title" hidden>
+          <div class="card-heading"><h2 id="review-title">核对这笔交易</h2><span class="pill">模拟通过 · 尚未发送</span></div>
+          <dl id="review-details" class="details review-details"></dl><details><summary>查看完整 calldata</summary><pre id="review-data" class="mono"></pre></details>
+          <p class="review-warning">核对实际账户、目标合约、网络和操作内容。点击确认后会再次模拟并比较交易参数，再打开钱包。模拟成功不保证上链成功。</p>
+          <div class="button-row"><button id="send-button" class="button button-primary" type="button" disabled>在钱包中确认 ↗</button><button id="discard-button" class="button button-outline" type="button">取消本次准备</button></div>
+        </section>
+        <section id="receipt" class="card receipt-card" aria-labelledby="receipt-title" hidden>
+          <div class="card-heading"><h2 id="receipt-title">交易回执</h2><span id="receipt-state" class="pill">等待链上确认</span></div>
+          <p id="receipt-message" aria-live="polite"></p><a id="receipt-link" class="transaction-link mono" target="_blank" rel="noopener noreferrer"></a><button id="receipt-button" class="button button-outline" type="button" disabled>检查链上回执</button>
+          <div id="receipt-recovery" hidden><label class="backup-label" for="recovery-hash">从钱包中找回这笔交易的哈希</label><div class="field-row"><input id="recovery-hash" type="text" placeholder="0x…（完整 32 字节交易哈希）" autocomplete="off" spellcheck="false" /><button id="recover-hash-button" class="button button-outline" type="button">核验并恢复回执</button></div><p class="help">仅接受链上已确认且与原交易的账户、目标、金额和完整 calldata 一致的交易；不会清除未知提交状态。</p></div>
+          <p class="help">已提交交易会保存在此浏览器，刷新后仍可查询。获得成功回执前不会视为完成；状态未知时保持锁定，避免重复发送。</p>
+        </section>
+        <section id="registration-complete" class="card completion-card" hidden><span class="eyebrow">READY FOR THE HANDOVER</span><h2>测试名已注册，并完成链上核验。</h2><p id="completion-message"></p><a class="button button-primary" href="/sepolia">继续设置交接权限 ↗</a></section>
+      </main>
+      <footer class="site-footer"><div><span class="footer-brand">RelayDesk.</span><span>让名字稳定，让协作流动。</span></div><a href="/">返回本地演示 ↗</a><p>SEPOLIA ONLY <span>·</span> TEST ASSETS ONLY</p></footer>
+    </div>
+  </body>
+</html>

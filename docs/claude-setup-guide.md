@@ -14,7 +14,7 @@
 
 **[策略]** 在 2.3 的判定完成前，不断言"必须自写注册"。两条路径都保留：
 - 路径 A：app.ens.dev 注册后若判定为 EOA 拥有，则我们只需做业务三笔交易，前置全部由官方 App 处理
-- 路径 B：判定为 HCA 拥有或无法确认，则由我们自己从 EOA 发前置交易（第 3 节的调用序列），这部分**目前尚未实现**
+- 路径 B：判定为 HCA 拥有或无法确认，则由我们自己从 EOA 发前置交易（第 3 节的调用序列），这部分**正在实现，状态见 0a**
 
 **Codex 现在就能做、不需要用户签名的工作**：
 - `inspect`：只读检查名字 owner、当前 resolver、四格角色、alias、registry 角色（第 4 节清单）
@@ -22,6 +22,24 @@
 - `receipt`：解析 `ProxyDeployed`、注册与授权回执
 - 用公开名字做只读验证：explorer 上今天注册的 `accouple.eth`，resolver 为 `0x721A0C5F3B59B2135Ba71eF92d5cFc66347EefD4`，可对它调 `roles()` / `hasRoles()` / `getAlias()` 验证资源公式
 - `eth_call` 模拟撤销后 `setText` 的 revert
+
+## 0a. 当前执行状态（2026-09-05 10:14 JST，系统 `date`）
+
+**已决定**：正式实施普通 EOA 路径（本文路径 B）。用户明确要求推进比赛。
+
+**[事实] 代码状态（Codex，`src/registration.mjs` 与 `/register` 页面）**：
+- 四个官方固定 commit 完整 ABI 已导入 `src/abi/`。与网页示例的差异已按实际 ABI 处理：VerifiableFactory 的 `verifyContract(address proxy)` 返回 `address implementation`，不是网页示例的 `verifyContract(address,address) -> bool`
+- 流程：`mint` 25 MockUSDC（余额足够则跳过）→ `deployProxy` 以最小位图 `ROLE_SET_TEXT | ROLE_SET_TEXT_ADMIN` 初始化到 root → `commit` → 按链上区块时间等待 `MIN_COMMITMENT_AGE` → 按 `getRegisterPrice` 精确金额 `approve` 给官方 ETHRegistrar → `register`，owner 为实际 EOA
+- 安全约束：签名前核对链 ID 为 Sepolia、原生币 value 为 0；不启用 HCA 或 Smart Sessions；不向任何 EOA 授权代币；resolver 必须绑定 `plan.deploymentHash`，真实交易、回执与 `ProxyDeployed` 事件的 sender / salt / 官方 Factory / 官方 impl / 最小初始化数据全部匹配才接受
+- 核心单测初版 17 项通过；UI 与 HTTP / 钱包边界仍在联调
+
+**[事实] 真实预检（只读）**：`relaydesk2026.eth` 可用；一年费用 8.000021 MockUSDC；账户已有 1000 MockUSDC（来源不是我们的 mint，不声称由我们 mint）；0.05 Sepolia ETH 已到账（ETHGlobal 官方领取）。
+
+**尚未发生**：尚未签任何新交易；resolver 尚未部署；名字尚未 commit、尚未注册。
+
+**待验证**：链上真实 `deployProxy` 回执与事件；`commitmentAt` 后的等待与 `register` 模拟；注册后 `ownerOf(findTokenId(label))` 等于 EOA、`getResolver(label)` 等于我们的实例。
+
+**Claude 独立复核（只读，未改代码）**：模块使用的全部函数与事件签名与本地 ABI 一致，包括 `makeCommitment` 七参顺序、`register` 八参顺序与 `uint256 tokenId` 返回、`commitmentAt(bytes32) -> uint64`、`ProxyDeployed(sender, proxyAddress, salt, implementation)`、`roles(uint256, address)`、`ROOT_RESOURCE = 0`。未发现确定的 ABI 或时序错误。两点非阻塞建议：注册按钮启用时在 `readyAt` 上再留几秒缓冲，避免钱包打包时间恰在边界；注册回执后立即用 `findTokenId` / `ownerOf` / `getResolver` 回读确认，再写入注册完成状态。
 
 ## 1. 官方出处
 
@@ -71,7 +89,7 @@
 
 2 至 4 全为真则路径 A 可用。任一为假则名字由 HCA 控制，接入需要 Rhinestone SDK 与会话签名，超出本轮范围，改走路径 B。
 
-## 3. 路径 B 的前置调用序列（尚未实现，供 prepare 端设计）
+## 3. 路径 B 的前置调用序列（实现中，见 0a）
 
 **[事实]** 以下签名均来自固定 commit ABI 与官方文档。**[策略]** 这是我们自己的调用编排，不是官方规定顺序。
 

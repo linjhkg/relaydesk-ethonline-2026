@@ -11,7 +11,7 @@
     "start": "node server.mjs",
     "test": "node --test",
     "preflight": "node scripts/sepolia-preflight.mjs",
-    "check": "node --check server.mjs && node --check src/domain.mjs && node --check src/ens-chain.mjs && node --check src/ens-receipt.mjs && node --check public/app.mjs && node --check public/sepolia.mjs"
+    "check": "node --check server.mjs && node --check src/domain.mjs && node --check src/ens-chain.mjs && node --check src/ens-receipt.mjs && node --check src/registration.mjs && node --check src/registration-receipt.mjs && node --check public/app.mjs && node --check public/sepolia.mjs && node --check public/register.mjs"
   },
   "dependencies": {
     "viem": "2.56.3"
