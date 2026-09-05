@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-09-05T02:38:07.851Z",
+  "chainId": 11155111,
+  "expect": "denied",
+  "name": "relaydesk2026.eth",
+  "volunteer": "0xd1E7194c2f5A6503B6E9599c7a6BA4c807B90836",
+  "actualResolver": "0xE3987444ace129a21e1C44f782292Da0BC73241E",
+  "actualUrl": "https://ethglobal.com/events/ethonline2026",
+  "simulatedUrl": "https://example.org/relaydesk-negative-check",
+  "roles": {
+    "root": {
+      "resource": "0x0",
+      "bits": "0x0"
+    },
+    "name": {
+      "resource": "0x62357c59e9db8fdcec60f221a55509eefca54c95fe6f63147dc50d623f051a91",
+      "bits": "0x0"
+    },
+    "globalKey": {
+      "resource": "0x8931720f8c2793976f5bbfa96c3d524f539b0a585fdd1d9a77e2bbe407f580f3",
+      "bits": "0x0"
+    },
+    "key": {
+      "resource": "0x15743689cca11e3896763ec9a09aec32afebd1056e637cf4809eea5f9a14eccd",
+      "bits": "0x0"
+    }
+  },
+  "registry": {
+    "address": "0xbdc85dd5b15d7ecb354cd7cb6f2c50b4f2c4f0e2",
+    "tokenId": "68214015406772769214204779070696399247529816223976416811917542118727486537728",
+    "canSetResolver": false,
+    "rootCanSetResolver": false,
+    "canAdminSetResolver": false,
+    "rootCanAdminSetResolver": false,
+    "hasBypassAuthority": false
+  },
+  "simulations": {
+    "url": {
+      "outcome": "denied",
+      "errorName": "EACUnauthorizedAccountRoles"
+    },
+    "description": {
+      "outcome": "denied",
+      "errorName": "EACUnauthorizedAccountRoles"
+    }
+  },
+  "results": {
+    "urlPermission": true,
+    "wrongKeyDenied": true,
+    "scopedRoles": true,
+    "registryNoBypass": true,
+    "resolverStable": true,
+    "chainStable": true
+  },
+  "overallPass": true,
+  "expectedCurrentUrl": "https://ethglobal.com/events/ethonline2026",
+  "currentUrlVerified": true
+}

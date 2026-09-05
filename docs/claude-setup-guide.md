@@ -1,10 +1,27 @@
 # Claude 接入指南：从 OKX 测试钱包到自有 ENSv2 名字 + Permissioned Resolver
 
-- 首版 2026-09-05 约 07:5x JST；本版修订：2026-09-05 07:52 JST（系统 `date`）
+- 首版 2026-09-05 约 07:5x JST；修订 07:52、10:14；本版修订：2026-09-05 11:43 JST（系统 `date`）
 - 维护者：Claude 只维护本文件。`src/`、`server.mjs`、`public/`、`test/` 由 Codex 负责
 - 方法：只读浏览公开界面（app.ens.dev、explorer.ens.dev）、读取官方文档与官方仓库固定 commit 源码与 ABI。未连接钱包、未发交易、未读旧目录
 - 所有地址均取自官方地址表 https://docs.ens.domains/learn/deployments/ （2026-09-05 核对）。官方提示 Sepolia 名字与状态"可能因例行合约部署而周期性重置，最近一次部署为 2026-07-30"
 - 本文严格区分三类内容：**[事实]** 有源码、ABI、官方文档或链上交易佐证；**[推断]** 由公开 JS 包或间接证据得出、未实际连钱包验证；**[策略]** 我们自己的保守选择，不是合约行为
+
+## 最新状态（2026-09-05 11:43 JST，系统 `date`）
+
+**普通 EOA 注册与双账户交接闭环已在真实 Sepolia 完成。** 本文第 0、0a、2、3、5 节写于此之前，其中"尚未注册 / 待实现 / 待判定"的措辞已是历史记录，请以本节为准。
+
+**[事实] 已完成**（证据见 [registration-complete.md](registration-complete.md)、[handover-e2e.md](handover-e2e.md)、[evidence/handover-final.json](evidence/handover-final.json)、[evidence/handover-transactions.json](evidence/handover-transactions.json)）：
+- 名称 `relaydesk2026.eth`，owner 为账户 01 `0xfcb9A5c53EaD436643A46c91B24EaD3E8C0Aac68`（普通 EOA，非 HCA / Smart Sessions）
+- Resolver `0xE3987444ace129a21e1C44f782292Da0BC73241E`，官方 Factory 的 `verifyContract` 返回官方 PermissionedResolver 实现；owner 的 root 位图精确等于 `ROLE_SET_TEXT | ROLE_SET_TEXT_ADMIN`
+- 注册四笔交易（deploy、commit、approve、register），注册回执区块 11637282，独立 RPC 回读时间 2026-09-05 01:50:50 UTC（10:50 JST）；费用 8.000021 MockUSDC，账户原有余额，本轮跳过 mint
+- 交接四笔交易（给账户 02 转 0.002 测试 ETH 付 gas、授予 `url` 单键、账户 02 写入活动链接、撤销），区块 11637372 至 11637487。合计 8 笔 Sepolia 成功交易
+- 志愿者账户 02 `0xd1E7194c2f5A6503B6E9599c7a6BA4c807B90836` 真实完成编辑；撤销后 `url` 与 `description` 的写入模拟均被合约自定义错误 `EACUnauthorizedAccountRoles` 拒绝；原活动链接保留；四格角色均为 0；registry 上无 `ROLE_SET_RESOLVER` 普通或 admin 旁路。最终只读验收时间 2026-09-05 02:38:07 UTC
+- 自动测试 158 项通过
+- 本文第 4 节的检查清单已在 `scripts/live-handover-check.mjs` 中落地为可重复的只读验收
+
+**尚未完成，不得对外声称**：公开可访问的演示部署、演示录屏、公开仓库整理、赛道材料与正式提交。**比赛尚未提交，没有获奖。**
+
+**关于第 2 节的推断**：我们最终没有使用 app.ens.dev 注册，而是走了本文路径 B。2.3 节的"连接 OKX 后判定官方 App 是 HCA 还是 EOA 路径"因此未执行，仍是未验证推断，保留原文仅作背景。
 
 ## 0. 结论
 
@@ -14,7 +31,7 @@
 
 **[策略]** 在 2.3 的判定完成前，不断言"必须自写注册"。两条路径都保留：
 - 路径 A：app.ens.dev 注册后若判定为 EOA 拥有，则我们只需做业务三笔交易，前置全部由官方 App 处理
-- 路径 B：判定为 HCA 拥有或无法确认，则由我们自己从 EOA 发前置交易（第 3 节的调用序列），这部分**正在实现，状态见 0a**
+- 路径 B：判定为 HCA 拥有或无法确认，则由我们自己从 EOA 发前置交易（第 3 节的调用序列），这部分**已实施完成，见顶部"最新状态"**
 
 **Codex 现在就能做、不需要用户签名的工作**：
 - `inspect`：只读检查名字 owner、当前 resolver、四格角色、alias、registry 角色（第 4 节清单）
@@ -23,7 +40,7 @@
 - 用公开名字做只读验证：explorer 上今天注册的 `accouple.eth`，resolver 为 `0x721A0C5F3B59B2135Ba71eF92d5cFc66347EefD4`，可对它调 `roles()` / `hasRoles()` / `getAlias()` 验证资源公式
 - `eth_call` 模拟撤销后 `setText` 的 revert
 
-## 0a. 当前执行状态（2026-09-05 10:14 JST，系统 `date`）
+## 0a. 【历史记录】执行状态快照（2026-09-05 10:14 JST，系统 `date`；已被顶部"最新状态"取代）
 
 **已决定**：正式实施普通 EOA 路径（本文路径 B）。用户明确要求推进比赛。
 
@@ -89,7 +106,7 @@
 
 2 至 4 全为真则路径 A 可用。任一为假则名字由 HCA 控制，接入需要 Rhinestone SDK 与会话签名，超出本轮范围，改走路径 B。
 
-## 3. 路径 B 的前置调用序列（实现中，见 0a）
+## 3. 路径 B 的前置调用序列（已实施；写作时为设计稿）
 
 **[事实]** 以下签名均来自固定 commit ABI 与官方文档。**[策略]** 这是我们自己的调用编排，不是官方规定顺序。
 
@@ -168,9 +185,9 @@ resolver 上的检查不覆盖 registry。志愿者若在 ETHRegistry 上持有�
 - Sepolia 状态会周期性重置（官方提示，最近 2026-07-30）。演示脚本要能从第 0 步重跑
 - 官方原文："The contracts and interfaces described here are not yet final and may change prior to mainnet deployment"。地址与 ABI 集中在一个配置文件，标注核对日期
 
-## 5. 待实现方案：用户操作流程草案
+## 5. 【历史记录】用户操作流程草案（写作时待实现，现已按此实施）
 
-**本节描述的按钮目前不存在，不是当前可执行的用户操作清单。** 当前 `/sepolia` 页面已有的是只读读取、模拟、签名复核与回执功能。下面是路径 B 落地后的目标流程，供 Codex 设计界面用。
+**写作时本节按钮尚不存在。** 此后 `/register` 向导与交接页已按此流程实施，真实执行记录见顶部"最新状态"。保留原文作为设计依据。
 
 组织者（OKX 测试钱包，切到 Sepolia）：
 1. 领 Sepolia ETH（已完成，ETHGlobal 官方 0.05 Sepolia ETH）
