@@ -22,7 +22,15 @@
       "block": "11658481",
       "from": "0xfcb9a5c53ead436643a46c91b24ead3e8c0aac68",
       "to": "0xcbfd80f74375c54e545af34788ff465f96f66f05",
-      "gasUsed": "51381"
+      "gasUsed": "51381",
+      "value": "0",
+      "testTokenTransfers": [
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0xfcb9A5c53EaD436643A46c91B24EaD3E8C0Aac68",
+          "value": "25000000"
+        }
+      ]
     },
     {
       "hash": "0x1c515c4ec1856387cf5c96085f72893b64aa401747616d58c2f82898ac87b6f2",
@@ -30,7 +38,9 @@
       "block": "11658488",
       "from": "0xfcb9a5c53ead436643a46c91b24ead3e8c0aac68",
       "to": "0x894bc9cc8ff1ad96b8a288c86a8c71d662c07780",
-      "gasUsed": "177902"
+      "gasUsed": "177902",
+      "value": "0",
+      "testTokenTransfers": []
     },
     {
       "hash": "0x36d338b157a81678c5c74019e05aa63b7e4ed8e8978c1186300aaeba2fb74114",
@@ -38,7 +48,9 @@
       "block": "11658495",
       "from": "0xfcb9a5c53ead436643a46c91b24ead3e8c0aac68",
       "to": "0x7d1b7f586a62ac3f54b9a396849757814283270b",
-      "gasUsed": "45438"
+      "gasUsed": "45438",
+      "value": "0",
+      "testTokenTransfers": []
     },
     {
       "hash": "0x5052b1dc03f1dfce4921e23d201634abecdc6ec180b457f2b3d7625737b62972",
@@ -46,7 +58,9 @@
       "block": "11658504",
       "from": "0xfcb9a5c53ead436643a46c91b24ead3e8c0aac68",
       "to": "0xcbfd80f74375c54e545af34788ff465f96f66f05",
-      "gasUsed": "46354"
+      "gasUsed": "46354",
+      "value": "0",
+      "testTokenTransfers": []
     },
     {
       "hash": "0xc4eb086485d7b43b59009417532c1003e830e5f2d9d5c4cc5e4c1b7692ef9511",
@@ -54,7 +68,16 @@
       "block": "11658511",
       "from": "0xfcb9a5c53ead436643a46c91b24ead3e8c0aac68",
       "to": "0x7d1b7f586a62ac3f54b9a396849757814283270b",
-      "gasUsed": "217344"
+      "gasUsed": "217344",
+      "value": "0",
+      "testTokenTransfers": [
+        {
+          "from": "0xfcb9A5c53EaD436643A46c91B24EaD3E8C0Aac68",
+          "to": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3",
+          "value": "8000021"
+        }
+      ]
     }
-  ]
+  ],
+  "amountsVerifiedAt": "2026-09-08T03:40:46.935Z"
 }

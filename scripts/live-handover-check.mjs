@@ -66,6 +66,7 @@ export async function checkLiveHandover(input = {}) {
   });
   const report = {
     timestamp: new Date().toISOString(), deployment: 'ethonline-2026', universalResolverAddress,
+    readVia: 'viem.getEnsText via the explicitly configured dedicated Universal Resolver',
     permissionScope: 'url key across entire resolver; no per-name isolation claim', chainId: null, expect, name, volunteer,
     actualResolver: null, actualUrl: null, simulatedUrl: url, roles: null,
     registry: null, simulations: null, results: {}, overallPass: false,

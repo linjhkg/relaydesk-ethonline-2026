@@ -33,6 +33,7 @@ for(const page of ['index','sepolia','register','evidence']) {
 }
 for(const file of ['app.mjs','sepolia.mjs','register.mjs','evidence.mjs','styles.css','sepolia.css','register.css','readability.css']) await copyFile(join(root,'public',file),join(output,file));
 for(const file of ['handover-final.json','handover-transactions.json','hackathon-registration-20260908.json','hackathon-before-grant-20260908.json','hackathon-after-grant-20260908.json','hackathon-after-revoke-20260908.json','hackathon-handover-transactions-20260908.json']) await copyFile(join(root,'docs/evidence',file),join(output,'evidence',file));
+await copyFile(join(root,'docs/evidence/hackathon-final-reread-20260908.json'),join(output,'evidence/hackathon-final-reread-20260908.json'));
 await writeFile(join(output,'404.html'),'<!doctype html><html lang="en"><meta charset="utf-8"><title>RelayDesk — Not found</title><h1>Page not found</h1><p><a href="/">Return to RelayDesk</a></p></html>');
 await writeFile(join(output,'_headers'),`/*\n  Content-Security-Policy: ${policy}; frame-ancestors 'none'\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n`);
 const packages=new Set(Object.keys(built.metafile.inputs).map(path=>path.match(/^node_modules\/((?:@[^/]+\/)?[^/]+)/)?.[1]).filter(Boolean));
