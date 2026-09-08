@@ -1,11 +1,17 @@
-// Documentation snapshot, 2026-09-05; not a user's resolver or wallet.
-// https://docs.ens.domains/learn/deployments/
+import { sepolia } from 'viem/chains';
+// ETHOnline dedicated deployment, verified 2026-09-08, NOT the general beta.
+// https://feature-permres-inode-refact.docs-bao.pages.dev/learn/deployments#sepolia-ensv2-beta
 export const SEPOLIA_CHAIN_ID = '0xaa36a7';
 export const PUBLIC_RPC = 'https://ethereum-sepolia-rpc.publicnode.com';
 export const ENS_DEPLOYMENTS = Object.freeze({
-  PermissionedResolverImpl: '0x9eae5c2730a7dd16bdd1dee6421a1b91e3b0365e',
-  VerifiableFactory: '0x10dc6333cdfe1fcef624c6e0a8221b91804cd7ef',
-  ETHRegistrar: '0xa88553f454b77203b0d036a05c894d555eaaa2cc',
-  MockUSDC: '0x768f42455a2d082e23ceef7d51e5787c82d67a39',
-  ETHRegistry: '0xbdc85dd5b15d7ecb354cd7cb6f2c50b4f2c4f0e2',
+  PermissionedResolverImpl: '0xa9d3814ab151bf6e37a427432795371a8361614e',
+  VerifiableFactory: '0x894bc9cc8ff1ad96b8a288c86a8c71d662c07780',
+  ETHRegistrar: '0x7d1b7f586a62ac3f54b9a396849757814283270b',
+  MockUSDC: '0xcbfd80f74375c54e545af34788ff465f96f66f05',
+  ETHRegistry: '0x1d78834d97c1d7b1a38c1dedbd1a287cfed3971e',
+  UniversalResolver: '0xd26f2040d083af1cd2962ba303f4bea0c4faf142',
+});
+export const HACKATHON_SEPOLIA = Object.freeze({
+  ...sepolia,
+  contracts: { ...sepolia.contracts, ensUniversalResolver: { address: ENS_DEPLOYMENTS.UniversalResolver } },
 });

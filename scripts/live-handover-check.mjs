@@ -1,13 +1,14 @@
 import { pathToFileURL } from 'node:url';
 import {
-  ContractFunctionRevertedError, createPublicClient, encodeAbiParameters, getAddress,
+  ContractFunctionRevertedError, createPublicClient, getAddress,
   http, isAddress, keccak256, stringToHex, toHex, zeroAddress, zeroHash,
 } from 'viem';
 import { sepolia } from 'viem/chains';
-import { namehash, normalize } from 'viem/ens';
+import { normalize, packetToBytes } from 'viem/ens';
 import resolverAbi from '../src/abi/permissioned-resolver.json' with { type: 'json' };
 import registryAbi from '../src/abi/eth-registry.json' with { type: 'json' };
-import { ENS_DEPLOYMENTS, PUBLIC_RPC } from '../src/sepolia-config.mjs';
+import factoryAbi from '../src/abi/verifiable-factory.json' with { type: 'json' };
+import { ENS_DEPLOYMENTS, PUBLIC_RPC, HACKATHON_SEPOLIA } from '../src/sepolia-config.mjs';
 
 export const DEFAULTS = Object.freeze({
   name: 'relaydesk2026.eth',
@@ -20,10 +21,7 @@ const SET_RESOLVER = 1n << 24n;
 const SET_RESOLVER_ADMIN = SET_RESOLVER << 128n;
 const UNAUTHORIZED = 'EACUnauthorizedAccountRoles';
 
-function resource(node, part) {
-  if (node === zeroHash && part === zeroHash) return 0n;
-  return BigInt(keccak256(encodeAbiParameters([{ type: 'bytes32' }, { type: 'bytes32' }], [node, part])));
-}
+const universalResolverAddress = ENS_DEPLOYMENTS.UniversalResolver;
 function parseOptions(input) {
   if (!['allowed', 'denied'].includes(input.expect)) throw new Error('Explicit --expect=allowed or --expect=denied is required.');
   const options = { ...DEFAULTS, ...input };
@@ -63,11 +61,12 @@ export function isUnauthorizedRevert(error) {
 export async function checkLiveHandover(input = {}) {
   const { expect, name, volunteer, url } = parseOptions(input);
   const client = input.client || createPublicClient({
-    chain: sepolia, ccipRead: false,
+    chain: HACKATHON_SEPOLIA, ccipRead: false,
     transport: http(PUBLIC_RPC, { timeout: 15_000, retryCount: 0 }),
   });
   const report = {
-    timestamp: new Date().toISOString(), chainId: null, expect, name, volunteer,
+    timestamp: new Date().toISOString(), deployment: 'ethonline-2026', universalResolverAddress,
+    permissionScope: 'url key across entire resolver; no per-name isolation claim', chainId: null, expect, name, volunteer,
     actualResolver: null, actualUrl: null, simulatedUrl: url, roles: null,
     registry: null, simulations: null, results: {}, overallPass: false,
   };
@@ -77,14 +76,19 @@ export async function checkLiveHandover(input = {}) {
   }
   try {
     await requireSepolia();
-    const resolved = await client.getEnsResolver({ name });
+    const resolved = await client.getEnsResolver({ name, universalResolverAddress });
     if (!resolved || !isAddress(resolved) || resolved.toLowerCase() === zeroAddress) throw new Error('The name has no current ENS resolver.');
     const resolver = getAddress(resolved); report.actualResolver = resolver;
     const code = await client.getBytecode({ address: resolver });
     if (!code || code === '0x') throw new Error('The current ENS resolver has no bytecode.');
-    report.actualUrl = await client.getEnsText({ name, key: 'url' }) ?? null;
-    const node = namehash(name), part = keccak256(stringToHex('url'));
-    const scopes = { root: 0n, name: resource(node, zeroHash), globalKey: resource(zeroHash, part), key: resource(node, part) };
+    const implementation = await client.readContract({ address: ENS_DEPLOYMENTS.VerifiableFactory, abi: factoryAbi,
+      functionName: 'verifyContract', args: [resolver] });
+    if (typeof implementation !== 'string' || implementation.toLowerCase() !== ENS_DEPLOYMENTS.PermissionedResolverImpl) {
+      throw new Error('Resolver is not a verified dedicated hackathon implementation.');
+    }
+    report.actualUrl = await client.getEnsText({ name, key: 'url', universalResolverAddress }) ?? null;
+    const dnsName = toHex(packetToBytes(name));
+    const scopes = { root: 0n, key: BigInt(keccak256(stringToHex('url'))) };
     const entries = await Promise.all(Object.entries(scopes).map(async ([scope, id]) => {
       const bits = await client.readContract({ address: resolver, abi: resolverAbi, functionName: 'roles', args: [id, volunteer] });
       if (typeof bits !== 'bigint' || bits < 0n) throw new Error(`Invalid ${scope} resolver role response.`);
@@ -109,7 +113,7 @@ export async function checkLiveHandover(input = {}) {
     async function probe(key) {
       try {
         await client.simulateContract({ address: resolver, abi: resolverAbi, functionName: 'setText',
-          args: [node, key, url], account: volunteer, chain: sepolia, value: 0n });
+          args: [dnsName, key, url], account: volunteer, chain: HACKATHON_SEPOLIA, value: 0n });
         return { outcome: 'allowed' };
       } catch (error) {
         if (isUnauthorizedRevert(error)) return { outcome: 'denied', errorName: UNAUTHORIZED };
@@ -119,7 +123,7 @@ export async function checkLiveHandover(input = {}) {
     const [urlResult, descriptionResult] = await Promise.all([probe('url'), probe('description')]);
     report.simulations = { url: urlResult, description: descriptionResult };
     await requireSepolia();
-    const latestResolver = await client.getEnsResolver({ name });
+    const latestResolver = await client.getEnsResolver({ name, universalResolverAddress });
     report.results = {
       urlPermission: urlResult.outcome === expect,
       wrongKeyDenied: descriptionResult.outcome === 'denied',

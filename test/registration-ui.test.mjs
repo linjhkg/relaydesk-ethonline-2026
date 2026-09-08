@@ -19,8 +19,8 @@ const HASH = `0x${'ab'.repeat(32)}`;
 const COMMITMENT = `0x${'cd'.repeat(32)}`;
 const NAME = 'relaydesk2026.eth';
 const PLAN = { owner: OWNER, name: NAME, secret: `0x${'12'.repeat(32)}`, salt: `0x${'34'.repeat(32)}`, resolver: RESOLVER, deploymentHash: `0x${'56'.repeat(32)}` };
-const PLAN_KEY = `relaydesk:registration:v1:plan:${OWNER}:${NAME}`;
-const PENDING_KEY = `relaydesk:registration:v1:pending:${OWNER}:${NAME}`;
+const PLAN_KEY = `relaydesk:registration:ethonline-v2:plan:${OWNER}:${NAME}`;
+const PENDING_KEY = `relaydesk:registration:ethonline-v2:pending:${OWNER}:${NAME}`;
 const ACTIONS = ['mint', 'deploy', 'approve', 'commit', 'register'];
 const CONTRACTS = { mockUsdc: ENS_DEPLOYMENTS.MockUSDC, factory: ENS_DEPLOYMENTS.VerifiableFactory, registrar: ENS_DEPLOYMENTS.ETHRegistrar };
 
@@ -71,7 +71,7 @@ function prepared(request, inspected) {
   if (request.action === 'deploy') {
     abi = factoryAbi; functionName = 'deployProxy'; to = CONTRACTS.factory;
     args = [ENS_DEPLOYMENTS.PermissionedResolverImpl, BigInt(request.salt), encodeFunctionData({ abi: resolverAbi,
-      functionName: 'initialize', args: [request.owner, (1n << 132n) | (1n << 4n), []] })];
+      functionName: 'initialize', args: [[{ account: request.owner, roleBitmap: (1n << 132n) | (1n << 4n) }], []] })];
   }
   return { status: 'ready', action: request.action, inspected, summary: `Prepare ${request.action}`,
     ...(request.action === 'deploy' ? { resolver: RESOLVER } : {}),

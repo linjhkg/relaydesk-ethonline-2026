@@ -5,6 +5,10 @@ import { namehash, normalize, packetToBytes } from 'viem/ens';
 import { toHex } from 'viem';
 import resolverAbi from '../src/abi/permissioned-resolver.json' with { type: 'json' };
 import { createEnsService } from '../src/ens-chain.mjs';
+import { ENS_DEPLOYMENTS } from '../src/sepolia-config.mjs';
+const urlResource = BigInt(keccak256(stringToHex('url')));
+const interfaceRead = ({ functionName }) => functionName === 'verifyContract' ? ENS_DEPLOYMENTS.PermissionedResolverImpl
+  : functionName === 'decodeSetter' ? [stringToHex('url'), urlResource, 16n] : 0n;
 
 const resolver = '0x1111111111111111111111111111111111111111';
 const actor = '0x2222222222222222222222222222222222222222';
@@ -19,7 +23,7 @@ function fake(overrides = {}) {
     getEnsResolver: () => resolver,
     getBytecode: () => '0x6000',
     getEnsText: () => 'https://example.com/',
-    readContract: ({ functionName }) => functionName === 'getAlias' ? '0x' : 0n,
+    readContract: interfaceRead,
     simulateContract: () => ({ result: true }),
   };
   const client = { chain: { id: 11155111 } };
@@ -70,13 +74,19 @@ test('missing resolver and missing code fail without inventing registration or o
   await assert.rejects(fake({ getBytecode: () => '0x' }).service.prepare(input), { code: 'NO_RESOLVER_CODE' });
 });
 
-test('grant and revoke encode DNS bytes and only the url key', async () => {
+test('grant and revoke encode only the url key with resolver-wide scope', async () => {
   for (const action of ['grant', 'revoke']) {
     const { service, calls } = fake();
     const prepared = await service.prepare({ ...input, action });
     const decoded = decodeFunctionData({ abi: resolverAbi, data: prepared.transaction.data });
-    assert.equal(decoded.functionName, 'authorizeTextRoles');
-    assert.deepEqual(decoded.args, ['0x056576656e740365746800', 'url', volunteer, action === 'grant']);
+    assert.equal(decoded.functionName, action === 'grant' ? 'grantSetterRoles' : 'revokeRoles');
+    if (action === 'grant') {
+      assert.equal(decoded.args[1], volunteer);
+      const setter = decodeFunctionData({abi: resolverAbi, data: decoded.args[0]});
+      assert.equal(setter.functionName, 'setText');
+      assert.deepEqual(setter.args, ['0x', 'url', '']);
+    } else assert.deepEqual(decoded.args, [urlResource, 16n, volunteer]);
+    assert.match(prepared.summary, /ALL names/);
     assert.deepEqual(calls.find(call => call.method === 'simulateContract').args, decoded.args);
     assert.equal(prepared.transaction.chainId, '0xaa36a7');
     assert.equal(prepared.transaction.from, actor);
@@ -85,12 +95,12 @@ test('grant and revoke encode DNS bytes and only the url key', async () => {
   }
 });
 
-test('update uses namehash, verifies simulation with actor, and encodes only url', async () => {
+test('update uses DNS bytes, verifies simulation with actor, and encodes only url', async () => {
   const { service, calls } = fake({ simulateContract: () => ({ result: undefined }) });
   const prepared = await service.prepare({ ...input, action: 'update', value: 'https://event.example/new' });
   const decoded = decodeFunctionData({ abi: resolverAbi, data: prepared.transaction.data });
   assert.equal(decoded.functionName, 'setText');
-  assert.deepEqual(decoded.args, [namehash('event.eth'), 'url', 'https://event.example/new']);
+  assert.deepEqual(decoded.args, ['0x056576656e740365746800', 'url', 'https://event.example/new']);
   assert.equal(calls.find(call => call.method === 'simulateContract').account, actor);
   for (const value of ['', 'http://event.test/', 'javascript:alert(1)', 'https://user:pass@site.test/', 'plain-text',
     'https://event.test/a b', 'https://event.test/a\\b', 'https://event.test/a\nb', 'https://event.test/a\u007fb']) {
@@ -147,43 +157,69 @@ test('simulation errors and false revokes never return a success transaction', a
   }
 });
 
-test('permission checks cover official root/name/global-key/key resources', async () => {
+test('permission checks cover official root and key resources, not fictional name scopes', async () => {
   const { service, calls } = fake();
   await service.prepare(input);
-  const hash = (node, part) => BigInt(keccak256(encodeAbiParameters([{ type: 'bytes32' }, { type: 'bytes32' }], [node, part])));
-  const node = namehash('event.eth');
-  const part = keccak256(stringToHex('url'));
   const roleCalls = calls.filter(call => call.functionName === 'roles');
-  assert.deepEqual(roleCalls.map(call => call.args), [0n, hash(node, zeroHash), hash(zeroHash, part), hash(node, part)]
+  assert.deepEqual(roleCalls.map(call => call.args), [0n, urlResource]
     .map(id => [id, volunteer]));
 });
 
 test('broad text roles and administrative authority block scoped handover claims', async () => {
-  for (const index of [0, 1, 2]) {
+  for (const index of [0]) {
     for (const bitmap of [16n, 16n << 128n]) {
       let reads = 0;
-      const { service } = fake({ readContract: ({ functionName }) => functionName === 'getAlias' ? '0x' : reads++ === index ? bitmap : 0n });
+      const { service } = fake({ readContract: (arg) => arg.functionName !== 'roles' ? interfaceRead(arg) : reads++ === index ? bitmap : 0n });
       await assert.rejects(service.prepare({ ...input, action: 'revoke' }), { code: 'BROAD_AUTHORITY' });
     }
   }
   let adminReads = 0;
-  const keyAdmin = fake({ readContract: ({ functionName }) => functionName === 'getAlias' ? '0x' : adminReads++ === 3 ? 16n << 128n : 0n });
+  const keyAdmin = fake({ readContract: arg => arg.functionName !== 'roles' ? interfaceRead(arg) : adminReads++ === 1 ? 16n << 128n : 0n });
   await assert.rejects(keyAdmin.service.prepare({ ...input, action: 'revoke' }), { code: 'BROAD_AUTHORITY' });
   let reads = 0;
-  const scoped = fake({ readContract: ({ functionName }) => functionName === 'getAlias' ? '0x' : reads++ === 3 ? 16n : 0n });
+  const scoped = fake({ readContract: arg => arg.functionName !== 'roles' ? interfaceRead(arg) : reads++ === 1 ? 16n : 0n });
   const prepared = await scoped.service.prepare({ ...input, action: 'revoke' });
   assert.equal(prepared.permissions.scopedUrlRole, true);
   assert.equal(prepared.permissions.broadAuthority, false);
 });
 
-test('unknown permissions and alias resolution fail closed for delegation', async () => {
+test('unknown permissions and unverified resolver semantics fail closed for delegation', async () => {
   const unknown = fake({ readContract: ({ functionName }) => {
-    if (functionName === 'getAlias') return '0x';
+    if (functionName !== 'roles') return interfaceRead({ functionName });
     throw new Error('RPC unavailable');
   } });
   await assert.rejects(unknown.service.prepare(input), { code: 'PERMISSIONS_UNKNOWN' });
-  const alias = fake({ readContract: () => '0x05616c6963650365746800' });
-  await assert.rejects(alias.service.prepare(input), { code: 'ALIASED_NAME' });
+  const wrong = fake({ readContract: arg => arg.functionName === 'decodeSetter' ? ['0x', 0n, 16n] : interfaceRead(arg) });
+  await assert.rejects(wrong.service.prepare(input), { code: 'UNSUPPORTED_RESOLVER' });
   const unsupported = fake({ readContract: () => { throw new Error('unsupported'); } });
   await assert.rejects(unsupported.service.prepare(input), { code: 'UNSUPPORTED_RESOLVER' });
+});
+
+test('all ENS resolutions explicitly select the dedicated hackathon Universal Resolver', async () => {
+  const {service,calls}=fake();
+  await service.prepare(input);
+  for(const call of calls.filter(c=>['getEnsResolver','getEnsText'].includes(c.method))) {
+    assert.equal(call.universalResolverAddress, ENS_DEPLOYMENTS.UniversalResolver);
+  }
+});
+
+test('URL grants for different names on one resolver have the SAME scope, never a per-name guarantee', async () => {
+  const {service}=fake();
+  const a=await service.prepare(input);
+  const b=await service.prepare({...input,name:'another.eth'});
+  assert.equal(a.transaction.data,b.transaction.data);
+  assert.equal(a.permissions.scope,'url-key-across-entire-resolver');
+  assert.match(a.notice,/No one-name isolation/);
+});
+
+test('root linking or upgrade authority and their admins prevent narrow-revocation claims', async () => {
+  for(const bit of [28n,124n,156n,252n]) {
+    const {service}=fake({readContract:arg=>arg.functionName==='roles' ? (arg.args[0]===0n ? 1n<<bit:0n) : interfaceRead(arg)});
+    await assert.rejects(service.prepare({...input,action:'revoke'}),{code:'BROAD_AUTHORITY'});
+  }
+});
+
+test('a proxy of the old resolver implementation is refused even on Sepolia', async () => {
+  const {service}=fake({readContract:arg=>arg.functionName==='verifyContract'?'0x9eae5c2730a7dd16bdd1dee6421a1b91e3b0365e':interfaceRead(arg)});
+  await assert.rejects(service.prepare(input),{code:'UNSUPPORTED_RESOLVER'});
 });

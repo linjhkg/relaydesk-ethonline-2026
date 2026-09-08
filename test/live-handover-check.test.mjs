@@ -2,15 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { ContractFunctionRevertedError, encodeAbiParameters, encodeErrorResult, getAddress, keccak256, stringToHex, zeroHash } from 'viem';
-import { namehash } from 'viem/ens';
+import { namehash, packetToBytes } from 'viem/ens';
+import { toHex } from 'viem';
 import resolverAbi from '../src/abi/permissioned-resolver.json' with { type: 'json' };
 import { DEFAULTS, checkLiveHandover, isUnauthorizedRevert, parseArgs } from '../scripts/live-handover-check.mjs';
+import { ENS_DEPLOYMENTS } from '../src/sepolia-config.mjs';
 
 const RESOLVER = '0xe3987444ace129a21e1c44f782292da0bc73241e';
 const OTHER = '0x2222222222222222222222222222222222222222';
 const node = namehash(DEFAULTS.name), part = keccak256(stringToHex('url'));
 const resource = (node, part) => BigInt(keccak256(encodeAbiParameters([{ type: 'bytes32' }, { type: 'bytes32' }], [node, part])));
-const scopes = { root: 0n, name: resource(node, zeroHash), globalKey: resource(zeroHash, part), key: resource(node, part) };
+const scopes = { root: 0n, key: BigInt(part) };
 
 function unauthorized() {
   return new ContractFunctionRevertedError({ abi: resolverAbi, functionName: 'setText', data: encodeErrorResult({ abi: resolverAbi,
@@ -25,6 +27,7 @@ function fake({ allowed = false, roles = {}, methods = {}, bypass = false } = {}
     getEnsText: () => 'https://example.org/actual-event',
     getBytecode: () => '0x6000',
     readContract: ({ functionName, args }) => {
+      if (functionName === 'verifyContract') return ENS_DEPLOYMENTS.PermissionedResolverImpl;
       if (functionName === 'findTokenId') return 42n;
       if (['hasRoles', 'hasRootRoles'].includes(functionName)) return bypass;
       if (functionName === 'roles') {
@@ -72,7 +75,7 @@ test('allowed check observes exact scoped URL role, denies description, and only
   for (const call of simulations) {
     assert.equal(call.account, getAddress(DEFAULTS.volunteer)); assert.equal(call.chain.id, 11155111);
     assert.equal(call.address, getAddress(RESOLVER)); assert.equal(call.value, 0n);
-    assert.equal(call.functionName, 'setText'); assert.equal(call.args[0], node); assert.equal(call.args[2], DEFAULTS.url);
+    assert.equal(call.functionName, 'setText'); assert.equal(call.args[0], toHex(packetToBytes(DEFAULTS.name))); assert.equal(call.args[2], DEFAULTS.url);
   }
   assert.deepEqual(calls.filter(call => call.functionName === 'roles').map(call => call.args[0]), Object.values(scopes));
   assert.ok(calls.some(call => call.functionName === 'hasRoles' && call.args[0] === 42n && call.args[1] === 1n << 24n));
@@ -81,7 +84,7 @@ test('allowed check observes exact scoped URL role, denies description, and only
   assert.doesNotThrow(() => JSON.stringify(report));
 });
 
-test('denied passes only with exact ABI-decoded authorization errors and all four scopes empty', async () => {
+test('denied passes only with exact ABI-decoded authorization errors and both scopes empty', async () => {
   const report = await checkLiveHandover({ client: fake().client, expect: 'denied' });
   assert.equal(report.overallPass, true);
   assert.equal(report.simulations.url.outcome, 'denied');
@@ -107,7 +110,7 @@ test('wrong-key success, broad resolver roles and registry bypass authority fail
     [{ methods: { simulateContract: () => ({ result: undefined }) } }, 'allowed'],
     [{ allowed: true, roles: { root: 16n } }, 'allowed'],
     [{ allowed: true, roles: { key: 16n | (16n << 128n) } }, 'allowed'],
-    [{ roles: { globalKey: 16n } }, 'denied'],
+    [{ roles: { root: 16n } }, 'denied'],
     [{ bypass: true }, 'denied'],
   ]) assert.equal((await checkLiveHandover({ client: fake(options).client, expect })).overallPass, false);
 });

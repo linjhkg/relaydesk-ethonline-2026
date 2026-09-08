@@ -1,18 +1,18 @@
 import {
-  createPublicClient, encodeAbiParameters, encodeFunctionData, getAddress,
+  createPublicClient, encodeFunctionData, getAddress,
   http, isAddress, keccak256, stringToHex, toHex, zeroAddress, zeroHash,
 } from 'viem';
 import { sepolia } from 'viem/chains';
 import { namehash, normalize, packetToBytes } from 'viem/ens';
 import resolverAbi from './abi/permissioned-resolver.json' with { type: 'json' };
-import { PUBLIC_RPC } from './sepolia-config.mjs';
+import factoryAbi from './abi/verifiable-factory.json' with { type: 'json' };
+import { PUBLIC_RPC, ENS_DEPLOYMENTS, HACKATHON_SEPOLIA } from './sepolia-config.mjs';
 
 export const ENS_CHAIN_ID = sepolia.id;
 export const ENS_TEXT_KEY = 'url';
 const TEXT = 1n << 4n;
 const TEXT_ADMIN = TEXT << 128n;
-const CLEAR = 1n << 32n;
-const ALIAS = 1n << 28n;
+const LINK = 1n << 28n;
 const UPGRADE = 1n << 124n;
 
 export class EnsChainError extends Error {
@@ -61,17 +61,12 @@ function parseUrl(value) {
   return parsed.href;
 }
 
-// Official PermissionedResolverLib.resource and partHash, contracts-v2 commit
-// 97a57293f3b4279d94b571e678edb53ce62638f4. Both values are bytes32, not strings.
-function resource(node, part) {
-  if (node === zeroHash && part === zeroHash) return 0n;
-  return BigInt(keccak256(encodeAbiParameters(
-    [{ type: 'bytes32' }, { type: 'bytes32' }], [node, part],
-  )));
-}
+// Dedicated hackathon resolver: key scope applies to the ENTIRE instance.
+const URL_RESOURCE = BigInt(keccak256(stringToHex(ENS_TEXT_KEY)));
+const universalResolverAddress = ENS_DEPLOYMENTS.UniversalResolver;
 
 export function createEnsService({ client = createPublicClient({
-  chain: sepolia,
+  chain: HACKATHON_SEPOLIA,
   ccipRead: false,
   transport: http(process.env.SEPOLIA_RPC_URL || PUBLIC_RPC, { timeout: 15_000, retryCount: 1 }),
 }) } = {}) {
@@ -86,25 +81,20 @@ export function createEnsService({ client = createPublicClient({
     const parsed = parseName(name);
     await requireChain();
     // Do not cache: the name may have changed resolvers since its last inspection.
-    const resolver = await client.getEnsResolver({ name: parsed.name });
+    const resolver = await client.getEnsResolver({ name: parsed.name, universalResolverAddress });
     if (!resolver || resolver.toLowerCase() === zeroAddress) {
       fail('NO_RESOLVER', 'This name has no resolvable ENS resolver. It may be unregistered or have no resolver set.');
     }
     const address = parseAddress(resolver, 'Resolver');
     const bytecode = await client.getBytecode({ address });
     if (!bytecode || bytecode === '0x') fail('NO_RESOLVER_CODE', 'The resolved address has no contract bytecode on Sepolia.');
-    const url = await client.getEnsText({ name: parsed.name, key: ENS_TEXT_KEY });
-    return { chainId: ENS_CHAIN_ID, ...parsed, resolver: address, url: url ?? null, bytecodePresent: true };
+    const url = await client.getEnsText({ name: parsed.name, key: ENS_TEXT_KEY, universalResolverAddress });
+    return { chainId: ENS_CHAIN_ID, deployment: 'ethonline-2026', universalResolver: universalResolverAddress,
+      ...parsed, resolver: address, url: url ?? null, bytecodePresent: true };
   }
 
   async function inspectPermissions(state, volunteer) {
-    const part = keccak256(stringToHex(ENS_TEXT_KEY));
-    const scopes = {
-      root: 0n,
-      name: resource(state.node, zeroHash),
-      globalKey: resource(zeroHash, part),
-      key: resource(state.node, part),
-    };
+    const scopes = { root: 0n, key: URL_RESOURCE };
     try {
       const entries = await Promise.all(Object.entries(scopes).map(async ([scope, id]) => {
         const roles = await client.readContract({ address: state.resolver, abi: resolverAbi,
@@ -113,16 +103,16 @@ export function createEnsService({ client = createPublicClient({
         return [scope, roles];
       }));
       const roles = Object.fromEntries(entries);
-      const broadText = [roles.root, roles.name, roles.globalKey].some(bits => (bits & TEXT) !== 0n)
+      const broadText = (roles.root & TEXT) !== 0n
         || Object.values(roles).some(bits => (bits & TEXT_ADMIN) !== 0n);
-      const alternateRoot = ALIAS | UPGRADE | CLEAR;
-      const otherAuthority = (roles.root & (alternateRoot | (alternateRoot << 128n))) !== 0n
-        || (roles.name & (CLEAR | (CLEAR << 128n))) !== 0n;
+      const alternateRoot = LINK | UPGRADE;
+      const otherAuthority = (roles.root & (alternateRoot | (alternateRoot << 128n))) !== 0n;
       return {
         status: 'known', volunteer,
         roles: Object.fromEntries(entries.map(([scope, bits]) => [scope, toHex(bits)])),
         broadAuthority: broadText || otherAuthority,
-        canEditUrl: [roles.root, roles.name, roles.globalKey, roles.key].some(bits => (bits & TEXT) !== 0n),
+        scope: 'url-key-across-entire-resolver',
+        canEditUrl: [roles.root, roles.key].some(bits => (bits & TEXT) !== 0n),
         scopedUrlRole: (roles.key & TEXT) !== 0n,
       };
     } catch (cause) {
@@ -140,15 +130,21 @@ export function createEnsService({ client = createPublicClient({
       : parseAddress(volunteer, 'Volunteer');
     const url = action === 'update' ? parseUrl(value) : undefined;
     const state = await inspect({ name });
-    let alias;
+    const setter = encodeFunctionData({ abi: resolverAbi, functionName: 'setText', args: ['0x', ENS_TEXT_KEY, ''] });
     try {
-      // Required interface probe, not an attestation of the deployed implementation.
-      alias = await client.readContract({ address: state.resolver, abi: resolverAbi,
-        functionName: 'getAlias', args: [state.dnsName] });
+      const implementation = await client.readContract({ address: ENS_DEPLOYMENTS.VerifiableFactory,
+        abi: factoryAbi, functionName: 'verifyContract', args: [state.resolver] });
+      if (typeof implementation !== 'string' || implementation.toLowerCase() !== ENS_DEPLOYMENTS.PermissionedResolverImpl) {
+        throw new Error('Not the verified hackathon resolver implementation.');
+      }
+      const decoded = await client.readContract({ address: state.resolver, abi: resolverAbi,
+        functionName: 'decodeSetter', args: [setter] });
+      if (!Array.isArray(decoded) || decoded[0] !== stringToHex(ENS_TEXT_KEY) || decoded[1] !== URL_RESOURCE || decoded[2] !== TEXT) {
+        throw new Error('Unexpected setter permission semantics.');
+      }
     } catch (cause) {
       fail('UNSUPPORTED_RESOLVER', 'This resolver does not expose the required ENSv2 interface.', cause);
     }
-    if (alias !== '0x') fail('ALIASED_NAME', 'This name uses resolver aliasing; direct updates would not reliably change the resolved URL.');
     const permissions = await inspectPermissions(state, delegate);
     if (action !== 'update' && permissions.status !== 'known') {
       fail('PERMISSIONS_UNKNOWN', 'Cannot verify the volunteer’s broader permissions. A URL-only handover cannot be prepared safely.');
@@ -156,23 +152,23 @@ export function createEnsService({ client = createPublicClient({
     if (action !== 'update' && permissions.broadAuthority) {
       fail('BROAD_AUTHORITY', 'The volunteer has broader resolver authority. Changing the URL-specific role would not establish a URL-only handover or remove all URL editing authority.');
     }
-    const functionName = action === 'update' ? 'setText' : 'authorizeTextRoles';
+    const functionName = action === 'update' ? 'setText' : action === 'grant' ? 'grantSetterRoles' : 'revokeRoles';
     const args = action === 'update'
-      ? [state.node, ENS_TEXT_KEY, url]
-      : [state.dnsName, ENS_TEXT_KEY, delegate, action === 'grant'];
+      ? [state.dnsName, ENS_TEXT_KEY, url]
+      : action === 'grant' ? [setter, delegate] : [URL_RESOURCE, TEXT, delegate];
     let simulation;
     try {
       simulation = await client.simulateContract({ address: state.resolver, abi: resolverAbi,
-        functionName, args, account, chain: sepolia });
+        functionName, args, account, chain: HACKATHON_SEPOLIA });
     } catch (cause) {
       fail('SIMULATION_REJECTED', `Sepolia rejected the ${action} simulation: ${cause.shortMessage || cause.message || 'contract call failed'}`, cause);
     }
-    // authorizeTextRoles returns false when the permission was already in that state.
+    // Both grantSetterRoles and revokeRoles report whether an assignment changed.
     if (action !== 'update' && simulation.result !== true) {
       fail('NO_PERMISSION_CHANGE', `The ${action} simulation would not change the URL permission.`);
     }
     await requireChain();
-    const latestResolver = await client.getEnsResolver({ name: state.name });
+    const latestResolver = await client.getEnsResolver({ name: state.name, universalResolverAddress });
     if (latestResolver?.toLowerCase() !== state.resolver.toLowerCase()) {
       fail('RESOLVER_CHANGED', 'The name changed resolvers during preparation. Refresh and prepare again.');
     }
@@ -183,8 +179,8 @@ export function createEnsService({ client = createPublicClient({
         chainId: toHex(ENS_CHAIN_ID), value: '0x0' },
       summary: action === 'update'
         ? `Set ${state.name} text record “url” to ${url}.`
-        : `${action === 'grant' ? 'Grant' : 'Revoke'} ${delegate} permission for only ${state.name} text record “url”.`,
-      notice: 'Simulation passed; nothing has been signed or broadcast. State may change before the wallet transaction is mined.',
+        : `${action === 'grant' ? 'Grant' : 'Revoke'} ${delegate} the url-key role across resolver ${state.resolver}, including ALL names it serves; NOT only ${state.name}.`,
+      notice: 'Instance-wide URL permission. Other names may share this resolver or its record bundle. No one-name isolation is claimed. Simulation only; nothing signed or broadcast.',
     };
   }
 

@@ -78,7 +78,7 @@ function commitmentArgs(plan) {
   return [plan.label, plan.owner, plan.secret, zeroAddress, plan.resolver, DURATION, zeroHash];
 }
 function deploymentArgs(plan) {
-  const initializer = encodeFunctionData({ abi: resolverAbi, functionName: 'initialize', args: [plan.owner, TEXT_ROLES, []] });
+  const initializer = encodeFunctionData({ abi: resolverAbi, functionName: 'initialize', args: [[{ account: plan.owner, roleBitmap: TEXT_ROLES }], []] });
   return [CONTRACTS.impl, plan.salt, initializer];
 }
 

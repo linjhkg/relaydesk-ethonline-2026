@@ -2,7 +2,7 @@ const CHAIN_ID = '0xaa36a7';
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const HASH = /^0x[0-9a-fA-F]{64}$/;
 const ZERO = /^0x0{40}$/i;
-const CONTRACTS = Object.freeze({ mockUsdc: '0x768f42455a2d082e23ceef7d51e5787c82d67a39', factory: '0x10dc6333cdfe1fcef624c6e0a8221b91804cd7ef', registrar: '0xa88553f454b77203b0d036a05c894d555eaaa2cc' });
+const CONTRACTS = Object.freeze({ mockUsdc: '0xcbfd80f74375c54e545af34788ff465f96f66f05', factory: '0x894bc9cc8ff1ad96b8a288c86a8c71d662c07780', registrar: '0x7d1b7f586a62ac3f54b9a396849757814283270b' });
 const TARGETS = Object.freeze({ mint: CONTRACTS.mockUsdc, deploy: CONTRACTS.factory, approve: CONTRACTS.mockUsdc, commit: CONTRACTS.registrar, register: CONTRACTS.registrar });
 const SELECTORS = Object.freeze({ mint: '0x40c10f19', approve: '0x095ea7b3', deploy: '0x5d84121a', commit: '0xf14fcbc8', register: '0xcff3e7c2' });
 const ACTIONS = Object.freeze({ mint: '铸造 25 测试 MockUSDC', deploy: '部署专属 Resolver', approve: '按当前注册价授权 MockUSDC', commit: '预约名称（commit）', register: '注册 Sepolia 测试名' });
@@ -18,8 +18,8 @@ function normalizedName(value) {
   if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.eth$/.test(name) || name.length > 255) throw new Error('请输入单层英文字母、数字或连字符组成的 .eth 测试名。');
   return name;
 }
-function planKey(owner, name) { return `relaydesk:registration:v1:plan:${owner.toLowerCase()}:${name}`; }
-function pendingKey(plan) { return `relaydesk:registration:v1:pending:${plan.owner.toLowerCase()}:${plan.name}`; }
+function planKey(owner, name) { return `relaydesk:registration:ethonline-v2:plan:${owner.toLowerCase()}:${name}`; }
+function pendingKey(plan) { return `relaydesk:registration:ethonline-v2:pending:${plan.owner.toLowerCase()}:${plan.name}`; }
 function validatePlan(value, owner = state.account, name = normalizedName($('ens-name').value)) {
   if (!value || !sameAddress(value.owner, owner) || normalizedName(value.name) !== name || !HASH.test(value.secret) || /^0x0{64}$/i.test(value.secret) || !HASH.test(value.salt) || /^0x0{64}$/i.test(value.salt) || (value.resolver != null && (!address(value.resolver) || !HASH.test(value.deploymentHash)))) throw new Error('计划的账户、名称、随机数或部署交易证明无效。请恢复此账户和名称对应的原始备份。');
   return { owner: value.owner.toLowerCase(), name, secret: value.secret.toLowerCase(), salt: value.salt.toLowerCase(), resolver: value.resolver?.toLowerCase() || null, ...(value.resolver ? { deploymentHash: value.deploymentHash.toLowerCase() } : {}) };
@@ -352,7 +352,7 @@ $('receipt-button').addEventListener('click', async () => {
   finally { state.receiptBusy = false; render(); }
 });
 window.addEventListener?.('storage', event => {
-  if (event.key?.startsWith('relaydesk:registration:v1:')) { invalidate('另一页面更新了注册计划或交易记录，请重新读取并检查回执。'); loadPlan(); }
+  if (event.key?.startsWith('relaydesk:registration:ethonline-v2:')) { invalidate('另一页面更新了注册计划或交易记录，请重新读取并检查回执。'); loadPlan(); }
 });
 $('recover-hash-button').addEventListener('click', async () => {
   const pending = state.pending; const plan = state.plan; const key = currentKey(); const hash = $('recovery-hash').value.trim();

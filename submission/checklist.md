@@ -4,7 +4,9 @@
 来源：https://ethglobal.com/events/ethonline2026/info/details
 
 - [x] 开赛后独立仓库及开发历史
-- [x] ENSv2 Sepolia 真实注册与双账户授权、编辑、撤销、拒绝证据
+- [x] 历史 ENSv2 Sepolia 真实注册与双账户授权、编辑、撤销、拒绝证据（非本届专用部署，不代表赛道验收）
+- [ ] 本届专用 ENSv2 部署上的端到端重新验证
+- [x] 官方创建 RelayDesk 项目并成功提交首次 check-in（2026-09-08）
 - [x] 英文项目说明草稿
 - [x] AI 使用与贡献说明
 - [x] 中文真人讲解稿初稿

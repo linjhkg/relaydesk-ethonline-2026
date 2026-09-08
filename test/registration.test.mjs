@@ -22,7 +22,7 @@ const roleBitmap = (1n << 132n) | (1n << 4n);
 function deploymentInput({ admin = owner, roles = roleBitmap, setters = [], deployedSalt = BigInt(salt) } = {}) {
   return encodeFunctionData({ abi: factoryAbi, functionName: 'deployProxy', args: [
     ENS_DEPLOYMENTS.PermissionedResolverImpl, deployedSalt,
-    encodeFunctionData({ abi: resolverAbi, functionName: 'initialize', args: [admin, roles, setters] }),
+    encodeFunctionData({ abi: resolverAbi, functionName: 'initialize', args: [[{ account: admin, roleBitmap: roles }], setters] }),
   ] });
 }
 
@@ -176,7 +176,7 @@ test('wrong network, contract accounts, and missing official code fail closed', 
     const contractOwner = fake({ methods: { getBytecode: () => ownerCode } });
     await assert.rejects(contractOwner.service.inspect(plan), { code: 'OWNER_NOT_EOA' });
   }
-  for (const contract of Object.values(ENS_DEPLOYMENTS)) {
+  for (const [name, contract] of Object.entries(ENS_DEPLOYMENTS).filter(([name]) => name !== 'UniversalResolver')) {
     const missing = fake({ methods: { getBytecode: ({ address }) => address === contract ? '0x' : address === owner ? '0x' : '0x6000' } });
     await assert.rejects(missing.service.inspect(plan), { code: 'NO_CONTRACT_CODE' });
   }
@@ -240,7 +240,7 @@ test('deploy uses official factory, fixed roles, empty setters and only the simu
   assert.equal(decoded.args[0], getAddress(ENS_DEPLOYMENTS.PermissionedResolverImpl));
   assert.equal(decoded.args[1], BigInt(salt));
   assert.deepEqual(decodeFunctionData({ abi: resolverAbi, data: decoded.args[2] }), {
-    functionName: 'initialize', args: [owner, roleBitmap, []],
+    functionName: 'initialize', args: [[{ account: owner, roleBitmap }], []],
   });
   assert.equal(calls.find(call => call.method === 'simulateContract').chain.id, 11155111);
   assert.equal((await fake().service.prepare({ ...plan, action: 'deploy' })).status, 'skipped');

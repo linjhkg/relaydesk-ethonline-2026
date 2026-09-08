@@ -17,6 +17,7 @@
         <a class="demo-link" href="/">返回本地模拟 ↗</a>
       </header>
       <main>
+        <p class="feedback">ETHOnline 2026 专用部署。新版 url 权限覆盖整个 Resolver 实例，不按名称隔离。请为需要独立权限的活动使用不同实例；不要把共享实例误认为名称隔离。旧部署交易仅作历史记录。</p>
         <section class="testnet-hero" aria-labelledby="page-title">
           <div><div class="eyebrow"><span class="tiny-line"></span> THE HANDOVER, ON CHAIN</div><h1 id="page-title">把交接，<span>写进链上。</span></h1><p>使用你实际控制的 ENS 名称和钱包，在 Sepolia 验证授权、更新与撤销。</p></div>
           <div class="testnet-note"><strong>仅限 Sepolia · 11155111</strong><span>这里的签名会发送真实测试网交易。<br />交易不转移 ETH，但需要 Sepolia ETH 支付网络费。</span></div>
@@ -59,7 +60,7 @@
         <section class="card actions-card" aria-labelledby="actions-title">
           <div class="card-heading"><h2 id="actions-title"><span class="step">03</span>选择操作并模拟</h2><span class="quiet-tag">此步骤不签名</span></div>
           <div class="testnet-grid action-grid">
-            <div><label for="volunteer">志愿者钱包地址</label><input id="volunteer" type="text" placeholder="输入完整的 0x 地址" spellcheck="false" autocomplete="off" maxlength="42" /><p class="help">授予或撤销此地址对当前名称的 <code>url</code> 记录编辑权限。<br /><strong>撤销不会删除旧链接；需要更换入口时，请另行更新 url。</strong></p><div class="button-row"><button id="grant-button" class="button button-primary" type="button" data-action="grant" disabled>模拟授予权限</button><button id="revoke-button" class="button button-outline" type="button" data-action="revoke" disabled>模拟撤销权限</button></div></div>
+            <div><label for="volunteer">志愿者钱包地址</label><input id="volunteer" type="text" placeholder="输入完整的 0x 地址" spellcheck="false" autocomplete="off" maxlength="42" /><p class="help">授予或撤销此地址对整个 Resolver 实例的 <code>url</code> 字段编辑权限（所有关联名称）。<br /><strong>撤销不会删除旧链接；需要更换入口时，请另行更新 url。</strong></p><div class="button-row"><button id="grant-button" class="button button-primary" type="button" data-action="grant" disabled>模拟授予权限</button><button id="revoke-button" class="button button-outline" type="button" data-action="revoke" disabled>模拟撤销权限</button></div></div>
             <div><label for="new-url">新的报名链接</label><input id="new-url" type="url" inputmode="url" placeholder="输入完整的 HTTPS 报名地址" autocomplete="off" spellcheck="false" maxlength="2048" /><p class="help">仅接受不含账号密码的 HTTPS 地址。请自行确认链接内容和接收方。</p><button id="update-button" class="button button-primary" type="button" data-action="update" disabled>模拟更新链接</button></div>
           </div>
         </section>

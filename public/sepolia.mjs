@@ -223,6 +223,9 @@ function showReview(prepared) {
     ['ENS 名称', state.inspected.name], ['操作', actions[prepared.request.action]],
     ['签名账户', prepared.tx.from], ['目标 Resolver', prepared.tx.to],
     ['网络', 'Sepolia · 11155111'], ['转账金额', '0 ETH（另需测试网网络费）'],
+    ['实际授权范围', '整个 Resolver 的 url 字段，包含其服务的所有名称；不是仅限当前名称。'],
+    ['志愿者 root 权限', prepared.permissions?.roles?.root ?? '未核验'],
+    ['志愿者 url-key 权限', prepared.permissions?.roles?.key ?? '未核验'],
     [prepared.request.action === 'update' ? '新的 url' : '志愿者地址', prepared.request.action === 'update' ? prepared.request.value : prepared.request.volunteer],
   ];
   $('review-details').replaceChildren();
@@ -253,7 +256,7 @@ for (const button of document.querySelectorAll('[data-action]')) button.addEvent
     assertCurrent(revision);
     await revalidateWallet(revision);
     const tx = transaction(result, request);
-    state.prepared = { request, tx, revision };
+    state.prepared = { request, tx, revision, permissions: result.permissions };
     showReview(state.prepared);
     status('模拟通过，尚未发送交易。请核对下方详情，再主动点击“在钱包中确认”。', 'success');
   } catch (error) { if (revision === state.revision) status(errorMessage(error), 'error'); }
