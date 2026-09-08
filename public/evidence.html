@@ -21,7 +21,7 @@
     <section class="evidence-intro">
       <h1>Explicit scope.<br /><span>Permission you can revoke.</span></h1>
       <p>On the dedicated hackathon deployment, URL-key permissions cover the entire resolver instance, not one name. Use separate resolver instances for independent activities. Registry references and shared record links can extend the scope; no global one-name isolation is claimed.</p>
-      <p class="feedback">Migration notice: the September 5 transactions below used a different ENSv2 deployment. They are NOT evidence of completing the dedicated ETHOnline integration. Fresh on-chain end-to-end verification is pending.</p>
+      <p class="feedback">The dedicated ETHOnline single-activity handover was verified on September 8. The September 5 transactions below used a different deployment and remain historical only. Two-activity isolation testing is still pending.</p>
       <div class="button-row"><a class="button button-primary" href="/">Try the isolated simulation</a><a class="button button-outline" href="/register">Register your own test name</a></div>
     </section>
     <section class="card" aria-labelledby="live-heading">
@@ -30,6 +30,18 @@
       <dl class="details"><div><dt>Name</dt><dd>relaydesk2026.eth</dd></div><div><dt>Resolver</dt><dd id="live-resolver">Not read yet</dd></div><div><dt>Current url</dt><dd id="live-url">Not read yet</dd></div></dl>
       <button id="refresh-live" class="button button-primary" type="button">Read Sepolia now</button>
       <p id="live-status" role="status" aria-live="polite">No request has been made yet.</p>
+    </section>
+    <section class="card evidence-history" aria-labelledby="current-proof">
+      <div class="card-heading"><h2 id="current-proof">Dedicated ETHOnline deployment — September 8</h2><span class="quiet-tag">Real Sepolia transactions</span></div>
+      <p><code>relaydesk2026.eth</code> now uses resolver <code>0xb5Fc7c9fE83750a40F1701B68718d9fE8E53D707</code>, verified against the dedicated factory and implementation.</p>
+      <ol class="proof-steps">
+        <li><strong>Register</strong><span>Direct EOA registration succeeded on the dedicated registrar; the exact MockUSDC allowance was consumed.</span><a href="https://sepolia.etherscan.io/tx/0xc4eb086485d7b43b59009417532c1003e830e5f2d9d5c4cc5e4c1b7692ef9511" target="_blank" rel="noopener noreferrer">Registration transaction ↗</a></li>
+        <li><strong>Grant URL-key authority</strong><span>The volunteer's root role stayed zero; the url-key TEXT role became 0x10. This scope covers the resolver instance.</span><a href="https://sepolia.etherscan.io/tx/0x94c8ebc02952abbf24f4440654ab7ee248c94989c13084ddb36b033b980c8b3b" target="_blank" rel="noopener noreferrer">Grant transaction ↗</a></li>
+        <li><strong>Independent volunteer writes</strong><span>A different wallet successfully set the event URL using the DNS-name setter.</span><a href="https://sepolia.etherscan.io/tx/0x29c0c1706a740ed981ca4cb772fff67fa3ca9a8764aac6fb487a4bead6899817" target="_blank" rel="noopener noreferrer">Volunteer update ↗</a></li>
+        <li><strong>Revoke and verify denial</strong><span>Root/key roles returned to zero. URL and description simulations reverted with the decoded authorization error; the dedicated Universal Resolver still returned the last URL. No registry resolver-management bypass was found for this volunteer.</span><a href="https://sepolia.etherscan.io/tx/0xc9e4438148b288f665fbac402b9746bef97dc193eaf927da6585035d3febc667" target="_blank" rel="noopener noreferrer">Revoke transaction ↗</a></li>
+      </ol>
+      <p><a href="/evidence/hackathon-registration-20260908.json">Registration evidence</a> · <a href="/evidence/hackathon-after-grant-20260908.json">Granted-role check</a> · <a href="/evidence/hackathon-after-revoke-20260908.json">Post-revocation check</a> · <a href="/evidence/hackathon-handover-transactions-20260908.json">Decoded transactions</a></p>
+      <p class="help">These are dated checks, not a permanent guarantee. The separate two-activity comparison and final competition submission are not yet complete.</p>
     </section>
     <section class="card evidence-history" aria-labelledby="proof-heading">
       <div class="card-heading"><h2 id="proof-heading">Old deployment only — not hackathon acceptance</h2><span class="quiet-tag">Historical evidence · September 5, 2026</span></div>

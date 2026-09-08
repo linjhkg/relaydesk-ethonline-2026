@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-09-08T03:34:37.445Z",
+  "deployment": "ethonline-2026",
+  "universalResolverAddress": "0xd26f2040d083af1cd2962ba303f4bea0c4faf142",
+  "permissionScope": "url key across entire resolver; no per-name isolation claim",
+  "chainId": 11155111,
+  "expect": "denied",
+  "name": "relaydesk2026.eth",
+  "volunteer": "0xd1E7194c2f5A6503B6E9599c7a6BA4c807B90836",
+  "actualResolver": "0xb5Fc7c9fE83750a40F1701B68718d9fE8E53D707",
+  "actualUrl": "https://ethglobal.com/events/ethonline2026",
+  "simulatedUrl": "https://example.org/relaydesk-negative-check",
+  "roles": {
+    "root": {
+      "resource": "0x0",
+      "bits": "0x0"
+    },
+    "key": {
+      "resource": "0xb68b5f5089998f2978a1dcc681e8ef27962b90d5c26c4c0b9c1945814ffa5ef0",
+      "bits": "0x0"
+    }
+  },
+  "registry": {
+    "address": "0x1d78834d97c1d7b1a38c1dedbd1a287cfed3971e",
+    "tokenId": "68214015406772769214204779070696399247529816223976416811917542118727486537728",
+    "canSetResolver": false,
+    "rootCanSetResolver": false,
+    "canAdminSetResolver": false,
+    "rootCanAdminSetResolver": false,
+    "hasBypassAuthority": false
+  },
+  "simulations": {
+    "url": {
+      "outcome": "denied",
+      "errorName": "EACUnauthorizedAccountRoles"
+    },
+    "description": {
+      "outcome": "denied",
+      "errorName": "EACUnauthorizedAccountRoles"
+    }
+  },
+  "results": {
+    "urlPermission": true,
+    "wrongKeyDenied": true,
+    "scopedRoles": true,
+    "registryNoBypass": true,
+    "resolverStable": true,
+    "chainStable": true
+  },
+  "overallPass": true
+}

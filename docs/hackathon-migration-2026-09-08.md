@@ -1,5 +1,7 @@
 # 本届专用部署迁移
 
+> 后续验收已完成：见 `hackathon-e2e-2026-09-08.md`。下方“只读验证/后续”是迁移初始阶段记录；现在已有本届8笔成功交易和单活动闭环。双活动对照仍未完成。
+
 原 `docs/registration-complete.md`、`docs/handover-e2e.md` 和 evidence JSON 保留为历史真实交易，不是本届专用部署的验收。
 
 已修正：
