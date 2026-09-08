@@ -215,6 +215,9 @@ $('restore-button').addEventListener('click', async () => {
     await revalidateWallet(revision); const plan = validatePlan(JSON.parse($('plan-restore').value));
     if (state.plan && JSON.stringify(plan) !== JSON.stringify(state.plan)) throw new Error('此账户和名称已有有效计划，不能用不同随机数覆盖。请使用已保存计划。');
     const pendingRaw = localStorage.getItem(pendingKey(plan)); if (pendingRaw) validatePending(JSON.parse(pendingRaw), plan);
+    // Imports must prove their deployment BEFORE occupying this deployment's slot.
+    const inspected = await api('inspect', plan); assertCurrent(revision);
+    validateInspection(inspected, plan); await revalidateWallet(revision);
     save(planKey(plan.owner, plan.name), plan); loadPlan(); if (state.storageError) throw new Error(state.storageError); $('plan-restore').value = '';
     await inspectPlan(revision); status('已恢复原始计划，并重新读取链上状态。', 'success');
   } catch (error) { if (revision === state.revision) status(errorMessage(error), 'error'); }

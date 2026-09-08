@@ -174,6 +174,16 @@ test('new plan randomness persists across refresh without requesting a private k
   assert.deepEqual(refreshed.savedPlan(), plan); assert.equal(refreshed.sendCalls().length, 0);
 });
 
+test('an unverified old-deployment backup cannot occupy the new deployment plan slot', async () => {
+  const h=harness({blank:true,apiError:url=>url.endsWith('/inspect')?'DEPLOYMENT_PROOF_MISMATCH: old deployment':null});
+  await h.connect();
+  h.el('plan-restore').value=JSON.stringify(PLAN);
+  await h.click('restore-button');
+  assert.equal(h.storage.has(PLAN_KEY),false);
+  assert.equal(h.sendCalls().length,0);
+  assert.match(h.el('status').textContent,/DEPLOYMENT_PROOF_MISMATCH/);
+});
+
 test('wrong network and silent wallet/account changes block both preparation and confirmation', async t => {
   const wrong = harness({ chain: '0x1' }); await wrong.ready();
   await wrong.click('mint-button', true); await wrong.click('send-button', true);
