@@ -12,8 +12,9 @@ if(existing?.isSymbolicLink()) throw new Error('Build output must not be a symli
 // Only generated output is replaced; never package source, recordings or local plans.
 await rm(output,{recursive:true,force:true});
 await mkdir(join(output,'evidence'),{recursive:true});
-const manifest=JSON.parse(await readFile(join(root,'.openai/hosting.json'),'utf8'));
-if(!manifest.project_id||manifest.static?.directory!=='dist') throw new Error('Static hosting manifest is required.');
+// A private hosting-account binding is not required for public-source builds.
+const manifest=await readFile(join(root,'.openai/hosting.json'),'utf8').then(JSON.parse).catch(error=>{if(error.code!=='ENOENT')throw error;return null;});
+if(manifest&&(!manifest.project_id||manifest.static?.directory!=='dist')) throw new Error('Invalid static hosting manifest.');
 const built=await build({
   absWorkingDir:root,entryPoints:['web/browser-entry.mjs'],outfile:join(output,'browser-api.js'),
   bundle:true,minify:true,format:'iife',platform:'browser',target:['es2022'],metafile:true,

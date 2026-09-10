@@ -1,20 +1,32 @@
-# RelayDesk · 活动链接交接台
+# RelayDesk — bounded event-link handover
 
-社区活动更换志愿者，不必交出整个钱包或每次重新群发入口。设想以 ENS 子名作为稳定入口，只委派报名链接记录的编辑权，交接结束即可撤销。
+An ETHOnline 2026 From Scratch prototype. An organizer delegates the `url` text key to an independent volunteer, then revokes that permission without removing the published link.
 
-当前有三个独立入口：
+**Permissions cover the entire Resolver instance, NOT one name.** Separate activities should use separate instances. Other names may reference a resolver or share its records; global per-name isolation is not claimed.
 
-- `/`：本地产品行为模拟。角色切换不是登录，名字是虚构的，状态只存在服务内存中。
-- `/sepolia`：真实 Sepolia 读取、合约调用预演、显式钱包确认、回执查询。没有硬编码的“成功”记录。预演不会签名，只有用户点击确认才向浏览器钱包请求发送。
-- `/register`：普通 EOA 的测试名注册向导，支持持久化计划、最小权限 Resolver 部署、预约、精确额度授权和注册后的真实所有权验证。
+## Try it
 
-**真实注册已完成：relaydesk2026.eth。** 四笔 Sepolia 交易及 owner/resolver/权限证据见 [注册完成记录](docs/registration-complete.md)。
+- [Public demo](https://relaydesk-ethonline-2026.xianche0614076.chatgpt.site)
+- [Live evidence](https://relaydesk-ethonline-2026.xianche0614076.chatgpt.site/evidence)
+- `/`: labelled wallet-free simulation. Hosted state is isolated per visitor; the localhost Node server uses shared in-memory demo state.
+- `/sepolia`: dedicated ETHOnline reads, simulations, explicit wallet confirmation and receipt checks.
+- `/register`: direct EOA registration, persisted plans, exact-price test-token approval and verified factory deployment.
 
-**自有名字的真实双账户授权→更新→撤销→拒绝验收已完成。** 交易和权限验证见 [端到端验收记录](docs/handover-e2e.md)。这不等于比赛已正式提交或获奖。不要把本地演示作为公网权限服务，商业收入尚未验证。
+## Verified status — September 8, 2026
 
-## 运行
+Eight successful transactions on the **dedicated ETHOnline deployment**: mint, deploy, commit, approve, register, grant, volunteer edit, revoke. The final check decodes `EACUnauthorizedAccountRoles` for url and description, observes zero volunteer root/key roles and no tested registry resolver-management bypass. The dedicated Universal Resolver still returns the last URL.
 
-需要 Node.js 24+。用户于 2026-09-05 明确允许比赛依赖，已固定安装 `viem@2.56.3`；浏览器端仍不依赖打包框架。
+- Name: `relaydesk2026.eth`
+- Resolver: `0xb5Fc7c9fE83750a40F1701B68718d9fE8E53D707`
+- [Evidence and transaction hashes](docs/hackathon-e2e-2026-09-08.md)
+- [Verified ABI provenance](src/abi/README.md)
+- [AI use and actual human contribution](AI_USAGE.md)
+
+September 5 evidence used a **different deployment** and is historical only. Two-activity comparison, final video and official submission are not implied by this single-activity result.
+
+## Run and verify
+
+Requires Node.js 24+. Dependencies are pinned in package-lock.json.
 
 ```sh
 npm ci --ignore-scripts
@@ -23,28 +35,29 @@ npm run check
 npm start
 ```
 
-浏览器打开 http://127.0.0.1:4317 。服务仅绑定本机，重启或重置会清空演示数据。
+Open http://127.0.0.1:4317 . Stop with Ctrl+C. No private key or API secret is required. Only a browser wallet signs.
 
-真实测试网页面：http://127.0.0.1:4317/sepolia 。需在安装钱包扩展的浏览器中使用；内置浏览器无钱包时仍可只读检查名称。
+```sh
+npm run build
+npm run verify:public
+npm run preflight
+node scripts/live-handover-check.mjs --expect=denied
+```
 
-`npm run preflight` 可只读检查 Sepolia 网络及官方部署地址代码是否存在，不需要钱包或密钥，不会发送交易；这不代表权限集成已经完成。
+The build emits a static site in `dist/`. Preflight verifies network and contract bytecode only. The live checker performs read-only RPC calls and simulations, never broadcasts. Later role changes can correctly make it fail; saved success is never substituted. Last full run: 165 tests passed.
 
-`node scripts/live-handover-check.mjs --expect=denied` 可复核本次演示最终的撤销状态、错误键拒绝、四范围角色和注册表旁路权限。该脚本只读，不会发送交易；重新授权后应改为 `--expect=allowed`。
+## Architecture and safety boundaries
 
-## 60 秒验收
+- `src/domain.mjs`: simulated workflow, separate from chain evidence.
+- `src/ens-chain.mjs`: explicit dedicated Universal Resolver, verified factory implementation, DNS-byte setters, grantSetterRoles/revokeRoles and root/key inspection.
+- `src/registration.mjs`: Grant[] initialization, fixed contracts, exact deployment proof, live commitment bounds and price checks.
+- `public/`, `web/browser-entry.mjs`, `src/browser-runtime.mjs`: browser UI and isolated static runtime.
+- `test/`: wrong networks, stale wallets, duplicate sends, unverified backups, decoded errors and permission scope.
 
-1. 组织者角色授权志愿者修改 `url`。
-2. 切到志愿者，把链接改为合法的 `https://` 地址；观察公众入口名称不变、链接变更、日志新增。
-3. 切回组织者撤销权限。
-4. 切到志愿者再次提交：应明确拒绝，原值和版本号不变。
-5. 切换未授权者也应拒绝；`javascript:`、`http:` 或包含用户名密码的 URL 应拒绝。
+Only Sepolia (11155111). MockUSDC is free test currency. No mainnet transfers, private-key import, automatic signature approval or HCA delegation. CCIP-read is disabled. This is not a security certification of arbitrary resolvers.
 
-## 真实 ENSv2 实现与限制
+## Development history
 
-适配器已使用官方固定版本 ABI，授权首参为 DNS 编码，`setText` 使用 namehash。每次准备与发送前重新核对实际 resolver；账户、网络或输入变化使准备失效。只允许 Sepolia、零转账金额和 `url` 单键调用，预演拒绝不会生成可发送交易。
+Work began after kickoff in a clean repository. The public export retains technical commits and dates; privacy exclusions and hash changes are documented in [PUBLICATION.md](PUBLICATION.md). AI-generated code is disclosed, not represented as human-written. Organizers determine eligibility.
 
-后端禁用不可信名称触发的任意 CCIP-Read 网关请求（防止访问本机内部服务）。当前只支持链上 Permissioned Resolver 场景；接口探测不是对任意自定义 Resolver 的安全认证。更宽角色和 alias 会阻止委派。本次自有测试名的所有权、Factory 来源、双账户权限和注册表旁路已实际验证；不能据此承诺任意第三方名称都安全。
-
-用户自持测试钱包，签名保留明确确认步骤；获授权的代理也须先核对完整内容。不提供主网交易、私钥导入或后台盲签。注册向导仅向已核验的官方合约发送有限范围调用，不启用智能会话。
-
-来源：[ENS 赛道](https://ethglobal.com/events/ethonline2026/prizes/ens)、[ENSv2 应用教程](https://docs.ens.domains/ensv2/tutorial-app-developers/)、[Permissioned Resolver](https://docs.ens.domains/ensv2/permissioned-resolver)。资格要求以主办方实时规则为准；仅本地模拟不满足真实 ENSv2 集成要求。
+Sources: [ENS prizes](https://ethglobal.com/events/ethonline2026/prizes/ens), [dedicated deployment](https://feature-permres-inode-refact.docs-bao.pages.dev/learn/deployments#sepolia-ensv2-beta), [event rules](https://ethglobal.com/events/ethonline2026/info/details).
