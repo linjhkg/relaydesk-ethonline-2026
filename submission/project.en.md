@@ -4,11 +4,11 @@ Status: submission draft. Public URLs and final human-narrated video must be ver
 
 ## Tagline
 
-Hand over an event link, not your wallet: record-scoped ENSv2 delegation with verifiable revocation.
+Hand over an event link, not your wallet: explicit ENSv2 permission scope and verifiable revocation.
 
 ## Short description
 
-RelayDesk lets community-event organizers delegate just the `url` text record of an ENSv2 name to a volunteer. The organizer retains ownership and can revoke editing access. A wallet-free simulation explains the workflow, while the real Sepolia workspace prepares narrowly scoped transactions and verifies their results.
+RelayDesk lets community-event organizers delegate the `url` text key across a dedicated ENSv2 Resolver instance to a volunteer. The organizer retains ownership and can revoke editing access. A wallet-free simulation explains the workflow; the real Sepolia workspace prepares transactions and verifies results. Permissions are NOT restricted to one name when names share a resolver.
 
 ## What it does
 
@@ -19,33 +19,36 @@ The application separates a browser-local simulation from actual Sepolia interac
 ## How it was built
 
 - Plain JavaScript, HTML and CSS; viem for Ethereum and ENS encoding/RPC calls.
-- ENSv2 `authorizeTextRoles` for the specific `url` key, and `setText` from the delegated account.
-- Official VerifiableFactory and ETHRegistrar ABIs pinned to an identifiable upstream commit.
+- ENSv2 `grantSetterRoles` and `revokeRoles` for the `url` key; `setText(bytes,string,string)` uses DNS-encoded names.
+- Dedicated ETHOnline VerifiableFactory, ETHRegistrar and Resolver ABIs extracted from verified deployment source, with addresses and ABI hashes recorded. No unverified deployment commit is invented.
 - Direct EOA registration with a minimal resolver role bitmap and exact test-token allowance; no hosted smart-session dependency.
 - A static public build runs the same inspected services in the visitor's browser. Simulation state is isolated per visitor; no server signing credentials or shared mutable demo state are deployed.
 - Source history, tests, AI attribution, and real transaction/check outputs are retained.
 
 ## ENS integration
 
-ENSv2 is the authorization system, not cosmetic naming. The important permission is scoped to one record of one name. We validate root, name, global-key and specific-key roles, and test registry-level resolver-management bypass authority for our controlled fixture.
+ENSv2 is the authorization system, not cosmetic naming. The URL-key permission covers an entire Resolver instance. We inspect root/key assignments and test registry-level resolver-management bypass authority for our controlled fixture. Separate instances are needed for independent activities; no global per-name isolation is claimed. The two-activity comparison is not yet complete.
 
 Live test name: `relaydesk2026.eth` on Sepolia (11155111).
-Resolver: `0xE3987444ace129a21e1C44f782292Da0BC73241E`.
+Resolver: `0xb5Fc7c9fE83750a40F1701B68718d9fE8E53D707`.
+Dedicated Universal Resolver: `0xd26f2040d083af1cd2962ba303f4bea0c4faf142`.
 The project uses the Best Use of ENSv2 track, not the Continuity-only existing-project track.
 
 ## Verified demonstration
 
 The organizer and volunteer used different OKX accounts. Before delegation, both `url` and `description` writes were denied. Granting the `url` role allowed a real volunteer edit while `description` remained denied. Revocation returned the volunteer's role scopes to zero; subsequent simulations reverted with `EACUnauthorizedAccountRoles`, and the original published event URL remained intact.
 
-Grant: https://sepolia.etherscan.io/tx/0xec69c1d670d8306b25abf372c40afed96648dd232bdc0ca1e5d21b9fd79579b0
+Grant: https://sepolia.etherscan.io/tx/0x94c8ebc02952abbf24f4440654ab7ee248c94989c13084ddb36b033b980c8b3b
 
-Volunteer edit: https://sepolia.etherscan.io/tx/0xfbecb8180af8c0fe6360674729ad0909bcff77e532af69602bcfbf1922c140a0
+Volunteer edit: https://sepolia.etherscan.io/tx/0x29c0c1706a740ed981ca4cb772fff67fa3ca9a8764aac6fb487a4bead6899817
 
-Revoke: https://sepolia.etherscan.io/tx/0xadff9bd29d3abd282280216bff5b96c542d08e0b3584263eddfe99228697e760
+Revoke: https://sepolia.etherscan.io/tx/0xc9e4438148b288f665fbac402b9746bef97dc193eaf927da6585035d3febc667
 
 ## Challenges and lessons
 
 The hosted registration flow introduced a smart-account approval we could not verify sufficiently. Instead of approving it blindly, we implemented the protocol-supported direct EOA path. We also found differences between a documentation example and the deployed Factory ABI, so transaction preparation uses the verified deployment artifacts.
+
+Our initial September 5 tests used a different ENSv2 deployment. On September 8 we corrected addresses, ABIs and permission semantics, then completed eight fresh successful transactions against the dedicated ETHOnline deployment. Old results remain labelled historical, not current acceptance evidence.
 
 Security review identified and fixed deployment-proof binding, stale wallet state after async locks, duplicate cross-tab submissions, and successful receipts whose expected effect had not actually been verified.
 

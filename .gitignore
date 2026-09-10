@@ -7,6 +7,9 @@ dist/
 recordings/
 submission/*.mp4
 submission/*.mov
+submission/*.zip
+submission/*.bundle
+submission/*.webm
 *.tar.gz
 coverage/
 *.log
