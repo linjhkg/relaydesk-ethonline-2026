@@ -64,6 +64,6 @@ This is a competition prototype on testnet. It is not a production security cert
 
 - Public demo URL: https://relaydesk-ethonline-2026.xianche0614076.chatgpt.site (deployed and checked anonymously on September 5, 2026).
 - On-chain evidence: https://relaydesk-ethonline-2026.xianche0614076.chatgpt.site/evidence
-- Public source repository: preserve development history; review source licensing and private-data exclusions.
+- Public source repository: https://github.com/linjhkg/relaydesk-ethonline-2026 (full source and preserved technical commit history publicly pushed September 10, 2026; project license still pending).
 - Demo video: human narration, 2–4 minutes, at least 720p; upload and verify playback.
 - Select ENS as a partner prize. Do not claim integrations with unused sponsors.
