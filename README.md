@@ -56,6 +56,14 @@ The build emits a static site in `dist/`. Preflight verifies network and contrac
 
 Only Sepolia (11155111). MockUSDC is free test currency. No mainnet transfers, private-key import, automatic signature approval or HCA delegation. CCIP-read is disabled. This is not a security certification of arbitrary resolvers.
 
+## License
+
+Original RelayDesk code and documentation are available under the [MIT License](LICENSE).
+Reused third-party dependencies and official ENS artifacts retain their original
+licenses and attribution; this license does not relicense those materials. See
+`src/abi/README.md` and the dependency lockfile for provenance. AI and human
+contributions remain disclosed in `AI_USAGE.md`.
+
 ## Development history
 
 Work began after kickoff in a clean repository. The public export retains technical commits and dates; privacy exclusions and hash changes are documented in [PUBLICATION.md](PUBLICATION.md). AI-generated code is disclosed, not represented as human-written. Organizers determine eligibility.
